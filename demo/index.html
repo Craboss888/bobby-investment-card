@@ -119,10 +119,9 @@
       <aside class="drawer" id="drawer" aria-label="侧栏">
         <div class="drawer-header">
           <div class="drawer-brand">
-            <img src="assets/img/logo.png" alt="" class="drawer-logo">
             <div class="drawer-brand-copy">
               <div class="drawer-brand-name">Bobby AI</div>
-              <div class="drawer-brand-sub">今天想交易什么？</div>
+              <div class="drawer-brand-sub">Think it. Bobby trades it.</div>
             </div>
             <button type="button" class="drawer-search-btn" id="drawerSearchBtn" aria-label="搜索对话">
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -133,13 +132,10 @@
               <button type="button" id="drawerSearchCancel">取消</button>
             </div>
           </div>
-          <button type="button" class="drawer-new-chat" id="drawerNewChat">
-            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-            <span>新对话</span>
-          </button>
         </div>
         <div class="drawer-menu">
-          <div class="drawer-section-label">聊天记录</div>
+          <div class="drawer-section-label">历史对话</div>
+          <div class="drawer-group-label" id="drawerGroupToday">今天</div>
           <div class="drawer-history" id="drawerHistory"></div>
           <div class="drawer-empty" id="drawerEmpty">无结果</div>
         </div>
@@ -150,7 +146,9 @@
               <div class="drawer-user-name">iFeng</div>
               <div class="drawer-user-email">ifeng@example.com</div>
             </div>
-            <svg viewBox="0 0 24 24" class="drawer-user-chev"><path d="M6 9l6 6 6-6"/></svg>
+            <button type="button" class="drawer-settings" id="drawerSettings" aria-label="设置">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
           </div>
         </div>
       </aside>

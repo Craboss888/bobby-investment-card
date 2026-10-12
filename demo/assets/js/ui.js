@@ -169,7 +169,8 @@ window.BobbyUI = (() => {
       const c = colors[i % 4];
       return `<i style="left:${(i * 37 + 8) % 92}%;bottom:${48 + (i * 13) % 34}%;width:${size}px;height:${size}px;background:${c};box-shadow:0 0 ${size * 2}px ${c};--dur:${2.4 + (i % 4) * .6}s;--delay:${(i * .45) % 3}s"></i>`;
     }).join('');
-    const exp = [['新手入门', '刚开始学习，需要多点指导。'], ['有些经验', '懂基本术语，有实盘经验。'], ['非常专业', '追求效率，直接聊数据和策略。']];
+    // 背面表单文案以 App 截图为准（2026-10-12）
+    const exp = [['', '新手', '刚开始交易，需要更完整的指引。'], ['📈', '有一定经验', '了解基础术语，有实盘经验。'], ['🧠', '经验丰富', '更看重效率，可直接讨论数据与策略。']];
     $('#proMount').innerHTML = `
       <div class="pro-card" id="proCard">
         <div class="pro-surface">
@@ -199,15 +200,29 @@ window.BobbyUI = (() => {
           <div class="pro-face pro-back">
             <div class="pro-back-inner">
               <div class="pro-back-head">
-                <div><h3 class="pro-back-title">加入 Bobby Pro</h3><p class="pro-back-sub">简单介绍一下你的交易风格</p></div>
+                <div><h3 class="pro-back-title">加入 Bobby Pro</h3><p class="pro-back-sub">告诉我们一点你的交易风格。</p></div>
                 <button type="button" class="pro-back-close" id="proBack" aria-label="返回">${svg('<path d="M15 18l-6-6 6-6"/>')}</button>
               </div>
               <div class="pro-form">
-                <div class="pro-field"><div class="pro-field-label">邮箱<b>*</b></div><input class="pro-input" id="proEmail" type="email" placeholder="you@example.com" autocomplete="off"></div>
-                <div class="pro-field" style="margin-top:14px"><div class="pro-field-label">交易经验<b>*</b></div>
-                  <div class="pro-radios">${exp.map(([t, s], i) => `<button type="button" class="pro-radio${i === 1 ? ' sel' : ''}" data-exp="${i}"><span class="pro-radio-dot"></span><span class="pro-radio-copy"><span class="pro-radio-title">${t}</span><span class="pro-radio-sub">${s}</span></span></button>`).join('')}</div>
+                <div class="pro-perks">${p.feats.map(f => `<div class="pro-perk"><span class="pro-perk-ico">${svg(f.icon)}</span><span>${esc(f.label)}</span></div>`).join('')}</div>
+                <div class="pro-field"><div class="pro-field-label">邮箱<b>*</b></div>
+                  <input class="pro-input" id="proEmail" type="email" value="ifeng@example.com" autocomplete="off">
+                  <div class="pro-field-hint">已从账号预填，可以更改。</div>
                 </div>
-                <button type="button" class="pro-cta" id="proSubmit" style="margin-top:18px"><span class="pro-cta-bg"></span><span class="pro-cta-copy"><span class="pro-cta-main">${esc(p.cta)}</span></span>${svg('<path d="M5 12h14M13 5l7 7-7 7"/>')}</button>
+                <div class="pro-field"><div class="pro-field-label">手机号<b>*</b></div>
+                  <div class="pro-phone">
+                    <button type="button" class="pro-input pro-cc" id="proCc">US +1${svg('<path d="M7 10l5 5 5-5z"/>')}</button>
+                    <input class="pro-input" id="proPhone" type="tel" inputmode="numeric" placeholder="手机号" autocomplete="off">
+                  </div>
+                </div>
+                <div class="pro-field"><div class="pro-field-label">交易经验<b>*</b></div>
+                  <div class="pro-radios" data-group="exp">${exp.map(([e, t, s2], i) => `<button type="button" class="pro-radio" data-val="${i}"><span class="pro-radio-dot"></span><span class="pro-radio-copy"><span class="pro-radio-title">${e ? `<i class="pro-emoji">${e}</i>` : ''}${t}</span><span class="pro-radio-sub">${s2}</span></span></button>`).join('')}</div>
+                </div>
+                <div class="pro-field"><div class="pro-field-label">是否持有 Rockflow 交易账户（RF***** 格式）<b>*</b></div>
+                  <div class="pro-radios pro-yesno" data-group="acct">${['是', '否'].map((t, i) => `<button type="button" class="pro-radio" data-val="${i}"><span class="pro-radio-dot"></span><span class="pro-radio-title">${t}</span></button>`).join('')}</div>
+                </div>
+                <label class="pro-consent" id="proConsent"><input type="checkbox" id="proAgree"><span class="pro-check"></span><span>我同意 RockFlow 使用以上信息向我介绍 Bobby Pro，并已阅读<a href="#" onclick="return false">隐私政策</a></span></label>
+                <button type="button" class="pro-submit" id="proSubmit">${esc(p.cta)}${svg('<path d="M5 12h14M13 5l7 7-7 7"/>')}</button>
               </div>
               <div class="pro-done">${svg('<circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16 9.5"/>')}<div class="pro-done-title">已加入候补</div><div class="pro-done-sub">开放后会第一时间通知你</div></div>
             </div>
@@ -215,33 +230,49 @@ window.BobbyUI = (() => {
         </div>
       </div>`;
     const card = $('#proCard');
-    // 卡片高度跟随当前朝向那一面的内容
-    // 卡片高度取正反两面中较高者，翻面时不改变高度，避免页面跳动
+    // 卡片高度跟随当前朝向那一面（背面表单比正面高得多）
     const fitHeight = () => {
-      const front = card.querySelector('.pro-front .pro-inner').scrollHeight;
-      const back = card.querySelector('.pro-back-inner').scrollHeight;
-      card.style.height = Math.max(front, back) + 'px';
+      const face = card.classList.contains('flipped') ? '.pro-back-inner' : '.pro-front .pro-inner';
+      card.style.height = card.querySelector(face).scrollHeight + 'px';
     };
     card.querySelector('.pro-art img').addEventListener('load', fitHeight);
     addEventListener('resize', fitHeight);
     document.fonts && document.fonts.ready.then(fitHeight);
     fitHeight();
-    $('#proCta').addEventListener('click', () => card.classList.add('flipped'));
-    $('#proBack').addEventListener('click', () => card.classList.remove('flipped'));
-    $('#proEmail').addEventListener('input', (e) => e.target.classList.remove('error'));
-    card.addEventListener('click', (e) => {
-      const r = e.target.closest('[data-exp]');
-      if (!r) return;
-      card.querySelectorAll('[data-exp]').forEach(x => x.classList.toggle('sel', x === r));
+    $('#proCta').addEventListener('click', () => { card.classList.add('flipped'); fitHeight(); });
+    $('#proBack').addEventListener('click', () => {
+      card.classList.remove('flipped');
+      // 等翻面过半再收起高度，避免背面内容被裁切
+      setTimeout(fitHeight, 200);
     });
+    $('#proCc').addEventListener('click', () => toast('演示版仅支持 US +1'));
+    const shake = (el) => { el.classList.remove('error'); void el.offsetWidth; el.classList.add('error'); };
+    card.addEventListener('input', (e) => e.target.classList.remove('error'));
+    card.addEventListener('click', (e) => {
+      const r = e.target.closest('.pro-radio');
+      if (!r) return;
+      const g = r.parentElement;
+      g.querySelectorAll('.pro-radio').forEach(x => x.classList.toggle('sel', x === r));
+      g.classList.remove('error');
+    });
+    $('#proAgree').addEventListener('change', () => $('#proConsent').classList.remove('error'));
     $('#proSubmit').addEventListener('click', () => {
-      const email = $('#proEmail');
-      if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) {
-        email.classList.remove('error'); void email.offsetWidth; email.classList.add('error');
-        toast('请填写有效邮箱'); email.focus(); return;
-      }
+      const email = $('#proEmail'), phone = $('#proPhone');
+      const checks = [
+        [!/^\S+@\S+\.\S+$/.test(email.value.trim()), email, '请填写有效邮箱'],
+        [phone.value.replace(/\D/g, '').length < 7, phone, '请填写手机号'],
+        [!card.querySelector('[data-group="exp"] .sel'), card.querySelector('[data-group="exp"]'), '请选择交易经验'],
+        [!card.querySelector('[data-group="acct"] .sel'), card.querySelector('[data-group="acct"]'), '请选择是否持有 Rockflow 账户'],
+        [!$('#proAgree').checked, $('#proConsent'), '请先勾选同意'],
+      ];
+      const bad = checks.find(c => c[0]);
+      if (bad) { shake(bad[1]); toast(bad[2]); if (bad[1].focus && bad[1].tagName === 'INPUT') bad[1].focus(); return; }
       card.classList.add('joining');
-      setTimeout(() => { card.classList.add('joined'); toast('已加入候补'); }, 220);
+      setTimeout(() => {
+        card.classList.add('joined'); toast('已加入候补');
+        // 表单收起后，卡片回到正面高度，完成提示居中
+        card.style.height = card.querySelector('.pro-front .pro-inner').scrollHeight + 'px';
+      }, 220);
     });
   }
 
@@ -282,13 +313,12 @@ window.BobbyUI = (() => {
     list.innerHTML = D.history.map(h => `
       <button type="button" class="drawer-item" data-hist="${h.id}">
         <span class="drawer-item-title">${esc(h.title)}</span>
-        <span class="drawer-item-time">${esc(h.time)}</span>
       </button>`).join('');
     list.addEventListener('click', (e) => {
       const it = e.target.closest('[data-hist]');
       if (it) onOpenHistory(D.history.find(h => h.id === it.dataset.hist));
     });
-    $('#drawerNewChat').addEventListener('click', onNewChat);
+    $('#drawerSettings').addEventListener('click', () => toast('演示版暂不开放设置'));
     const drawer = $('#drawer');
     const input = $('#drawerSearchInput');
     $('#drawerSearchBtn').addEventListener('click', () => { drawer.classList.add('searching'); setTimeout(() => input.focus(), 120); });
@@ -306,6 +336,7 @@ window.BobbyUI = (() => {
       if (hit) shown++;
     });
     $('#drawerEmpty').classList.toggle('show', shown === 0);
+    $('#drawerGroupToday').classList.toggle('is-hidden', shown === 0);
   }
 
   function resetSearch() {
@@ -319,7 +350,7 @@ window.BobbyUI = (() => {
     const list = $('#drawerHistory');
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'drawer-item is-new'; b.dataset.hist = item.id;
-    b.innerHTML = `<span class="drawer-item-title">${esc(item.title)}</span><span class="drawer-item-time">${esc(item.time)}</span>`;
+    b.innerHTML = `<span class="drawer-item-title">${esc(item.title)}</span>`;
     list.prepend(b);
   }
 

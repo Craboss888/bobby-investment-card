@@ -28,6 +28,7 @@ window.BobbyChat = (() => {
     const units = [];
     blocks.forEach(b => {
       if (b.t === 'table') { units.push({ kind: 'table', b }); return; }
+      if (b.t === 'hr') { units.push({ kind: 'hr', b }); return; }
       if (b.t === 'ol' || b.t === 'ul') { units.push({ kind: 'list', b }); return; }
       units.push({ kind: 'text', b, len: segLen(b.c) });
     });
@@ -53,6 +54,7 @@ window.BobbyChat = (() => {
   function renderStatic(md, blocks) {
     blocks.forEach(b => {
       if (b.t === 'table') { md.appendChild(tableEl(b)); return; }
+      if (b.t === 'hr') { md.appendChild(document.createElement('hr')); return; }
       if (b.t === 'ol' || b.t === 'ul') {
         const l = document.createElement(b.t);
         l.innerHTML = b.items.map(it => `<li>${segHTML(it)}</li>`).join('');
@@ -88,7 +90,6 @@ window.BobbyChat = (() => {
       <div class="msg-actions">
         <button type="button" class="msg-action" data-act="up" aria-label="赞">${svg('<path d="M7 11v9H4v-9z"/><path d="M7 11l4-7a2 2 0 0 1 3 1.8L13.4 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/>')}</button>
         <button type="button" class="msg-action" data-act="down" aria-label="踩">${svg('<path d="M17 13V4h3v9z"/><path d="M17 13l-4 7a2 2 0 0 1-3-1.8l.6-4.2H5a2 2 0 0 1-2-2.3l1.2-6A2 2 0 0 1 6.2 4H17"/>')}</button>
-        <button type="button" class="msg-action" data-act="share" aria-label="分享">${svg('<path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>')}</button>
       </div>`;
     thread().appendChild(m);
     const think = m.querySelector('.think');
@@ -103,7 +104,8 @@ window.BobbyChat = (() => {
     think.querySelectorAll('.think-pulse').forEach(p => p.remove());
     think.classList.add('done', 'collapsed');
     think.querySelector('.think-title').textContent = `已思考 ${secs}s`;
-    think.querySelector('.think-meta').textContent = '';
+    const n = think.querySelectorAll('.think-step').length;
+    think.querySelector('.think-meta').textContent = n ? `· ${n} 步` : '';
   }
 
   function addStep(m, step, idx, total) {
@@ -180,7 +182,9 @@ window.BobbyChat = (() => {
       const u = units[ui];
       if (!u) { done(r); return; }
 
-      if (u.kind === 'table') {
+      if (u.kind === 'hr') {
+        const hr = document.createElement('hr'); hr.className = 'fade-in'; md.appendChild(hr); ui++; pauseUntil = now + 80;
+      } else if (u.kind === 'table') {
         // 先按完整内容排好列宽（行先隐藏），再逐行显示，避免边出边跳
         if (!el) {
           el = tableEl(u.b); el.classList.add('fade-in'); md.appendChild(el); ci = 0;
@@ -274,7 +278,6 @@ window.BobbyChat = (() => {
       const a = e.target.closest('.msg-action');
       if (!a) return;
       const act = a.dataset.act;
-      if (act === 'share') { window.BobbyUI.toast('链接已复制'); return; }
       const box = a.parentElement;
       const was = a.classList.contains('on');
       box.querySelectorAll('[data-act="up"],[data-act="down"]').forEach(x => x.classList.remove('on'));
