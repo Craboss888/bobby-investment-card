@@ -67,7 +67,8 @@
     if (view !== 'chat') { Chat.clear(); currentChatId = null; show('chat'); }
     if (!currentChatId) {
       currentChatId = 'c-' + Date.now();
-      const title = question.length > 20 ? question.slice(0, 20) + '…' : question;
+      const flat = question.replace(/\s+/g, ' ');
+      const title = flat.length > 20 ? flat.slice(0, 20) + '…' : flat;
       UI.addHistory({ id: currentChatId, title, time: nowLabel(), q: question, a: null, answer });
       UI.markCurrent(currentChatId);
     }
@@ -131,15 +132,16 @@
     const open = !attachPanel.classList.contains('open');
     attachPanel.classList.toggle('open', open); attachBtn.classList.toggle('open', open);
   });
-  attachPanel.addEventListener('click', (e) => { if (e.target.closest('[data-attach]')) { closeAttach(); UI.toast('演示版暂不支持上传'); } });
+  attachPanel.addEventListener('click', (e) => { if (e.target.closest('[data-attach]')) { closeAttach(); UI.toast('暂不支持上传'); } });
   document.addEventListener('click', (e) => { if (!e.target.closest('#attachPanel, #attachBtn')) closeAttach(); });
-  $('#micBtn').addEventListener('click', () => UI.toast('演示版暂不支持语音'));
+  $('#micBtn').addEventListener('click', () => UI.toast('暂不支持语音'));
 
   /* ---------- 侧栏 ---------- */
   function openDrawer() { app.classList.add('drawer-open'); input.blur(); }
   function closeDrawer() {
+    if (!app.classList.contains('drawer-open')) return;
     app.classList.remove('drawer-open');
-    $('#drawer').classList.remove('searching');
+    setTimeout(UI.resetSearch, 400);
   }
   $('#menuBtn').addEventListener('click', openDrawer);
   $('#drawerBackdrop').addEventListener('click', closeDrawer);

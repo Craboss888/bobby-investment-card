@@ -18,22 +18,22 @@ window.BOBBY_DATA = (() => {
 
   const hotTrades = [
     {
-      id: 'iren', tag: 'AI', time: '1分钟前', img: 'assets/img/hot-1.jpg',
-      title: 'IREN获Anthropic多年期AI云合作，暴跌一周后强势反弹',
-      body: '在一周内下跌15.7%后，IREN宣布与AI公司Anthropic签订多年期AI云计算协议，股价随即大幅反弹，巩固其在AI基础设施市场的地位。',
-      stocks: [{ label: 'IREN 跌过 34 · 10/23', chg: '-25.4%', up: false }, { label: 'MSFT 跌过 525 · 11/20', chg: '-14.1%', up: false }],
+      id: 'ddog', tag: '互联网', time: '19分钟前', img: 'assets/img/hot-1.jpg',
+      title: 'RBC Capital维持Datadog跑赢大盘评级，目标价上调至320美元',
+      body: 'RBC Capital重申对Datadog的“跑赢大盘”评级，并将目标价上调至320美元，理由是可观测性与AI监控需求加速、大客户扩张强于预期。',
+      stocks: [{ label: 'DDOG 跌过 260 · 10/30', chg: '-20.0%', up: false }],
     },
     {
-      id: 'spacex', tag: '互联网', time: '5分钟前', img: 'assets/img/hot-2.jpg',
+      id: 'spacex', tag: '互联网', time: '25分钟前', img: 'assets/img/hot-2.jpg',
       title: 'SpaceX两个月涨22%，大幅跑赢标普500的1%',
       body: '截至8月11日收盘，SpaceX股价两个月累计上涨22%，同期SPDR标普500 ETF仅上涨1%。',
-      stocks: [{ label: 'SPCX 跌过 160 · 11/13', chg: '-11.6%', up: false }, { label: 'SPY 跌过 766 · 10/30', chg: '-3.04%', up: false }],
+      stocks: [{ label: 'SPCX 跌过 160 · 11/13', chg: '-11.6%', up: false }],
     },
     {
-      id: 'amd', tag: '半导体', time: '20分钟前', img: 'assets/img/hot-3.jpg',
+      id: 'amd', tag: '半导体', time: '40分钟前', img: 'assets/img/hot-3.jpg',
       title: 'AMD发布Helion机架级平台，全力押注智能体AI',
       body: 'AMD推出搭载EPYC CPU与Instinct GPU的开放机架级AI平台Helion，瞄准企业级与大规模智能体AI应用。',
-      stocks: [{ label: 'AMD 跌过 582.5 · 10/19', chg: '+143.7%', up: true }, { label: 'NVDA', chg: '-1.73%', up: false }],
+      stocks: [{ label: 'AMD 跌过 582.5 · 10/19', chg: '+143.7%', up: true }],
     },
   ];
 
@@ -98,7 +98,7 @@ window.BOBBY_DATA = (() => {
     market: {
       steps: steps(['正在理解你的问题，确定分析框架', '读取你的问题', '准备分析'], ['扫描三大指数与板块资金流', '已覆盖 11 个板块', '检索资料'], ['筛选涨跌幅异动个股', '美股 · 盘前 · 期权', '整理数据'], ['归纳主线与风险', '整理结论', '生成回答']),
       blocks: [
-        { t: 'lead', c: [S('以下为今日美股盘面速览（演示数据）。')] },
+        { t: 'lead', c: [S('以下为今日美股盘面速览。')] },
         { t: 'h2', c: [S('一、指数表现')] },
         { t: 'table', head: ['指数', '收盘', '涨跌'], rows: [['标普 500', '6,712.4', '+0.62%'], ['纳斯达克', '22,840.1', '+1.08%'], ['道琼斯', '46,215.7', '-0.14%'], ['VIX', '15.3', '-4.2%']] },
         { t: 'h2', c: [S('二、谁在狂飙，谁在跳水')] },
@@ -126,7 +126,7 @@ window.BOBBY_DATA = (() => {
     picks: {
       steps: steps(['正在理解你的问题', '读取你的问题', '准备分析'], ['按催化剂与动量筛选', '已扫描 4,812 只股票', '检索资料'], ['校验估值与流动性', '剩余 5 只', '整理数据'], ['生成选股清单', '整理结论', '生成回答']),
       blocks: [
-        { t: 'lead', c: [S('筛选条件：近 30 日有明确催化、成交额 > 5 亿美元、动量排名前 20%（演示数据）。')] },
+        { t: 'lead', c: [S('筛选条件：近 30 日有明确催化、成交额 > 5 亿美元、动量排名前 20%。')] },
         { t: 'table', head: ['代码', '催化剂', '近 1 月'], rows: [['AMD', 'Helion 平台发布', '+18.4%'], ['IREN', 'Anthropic 云合作', '+9.7%'], ['DDOG', 'RBC 上调目标价', '+6.1%'], ['TSLA', '9 月出口创新高', '+4.3%'], ['MU', '存储涨价周期', '+12.9%']] },
         { t: 'h3', c: [S('怎么用这份清单')] },
         { t: 'ul', items: [
@@ -147,7 +147,7 @@ window.BOBBY_DATA = (() => {
     earnings: {
       steps: steps(['正在理解你的问题', '读取你的问题', '准备分析'], ['拉取本周财报日历', '共 38 家公司', '检索资料'], ['对比一致预期与期权隐含波动', '整理数据', '整理数据'], ['生成重点清单', '整理结论', '生成回答']),
       blocks: [
-        { t: 'lead', c: [S('本周重点财报（演示数据）：')] },
+        { t: 'lead', c: [S('本周重点财报：')] },
         { t: 'table', head: ['公司', '日期', '隐含波动'], rows: [['TSLA', '10/21 盘后', '±8.9%'], ['NFLX', '10/16 盘后', '±7.2%'], ['TSM', '10/16 盘前', '±5.1%'], ['JPM', '10/14 盘前', '±3.4%']] },
         { t: 'h3', c: [S('最值得看的一家：TSLA')] },
         { t: 'p', c: [S('9 月上海出口创新高已经部分反映在股价里，财报的关键是 '), S('汽车业务毛利率', { b: true }), S('能否企稳在 17% 以上；低于预期时股价波动可能放大。')] },
@@ -172,7 +172,7 @@ window.BOBBY_DATA = (() => {
           [S('稳健：', { b: true }), S('等回踩确认后分两到三笔建仓，单笔不超过计划仓位的 40%。')],
           [S('观望：', { b: true }), S('如果你已有较重仓位，这条消息更适合作为持有理由，而不是加仓理由。')],
         ] },
-        { t: 'callout', c: [S('风险提示：', { b: true }), S('以上为演示内容，不构成投资建议。')] },
+        { t: 'callout', c: [S('风险提示：', { b: true }), S('以上内容不构成投资建议。')] },
       ],
     };
   });
@@ -180,12 +180,12 @@ window.BOBBY_DATA = (() => {
   const generic = (q) => ({
     steps: steps(['正在理解你的问题，确定分析框架', '读取你的问题', '准备分析'], ['检索相关新闻与行情', '已读取 10 条来源', '检索资料'], ['整理关键数据', '行情 · 新闻 · 研报', '整理数据'], ['形成观点', '整理结论', '生成回答']),
     blocks: [
-      { t: 'lead', c: [S('关于“' + q + '”，以下是我的简要看法（演示数据）。')] },
+      { t: 'lead', c: [S('关于“' + q + '”，以下是我的简要看法。')] },
       { t: 'h2', c: [S('一、核心判断')] },
       { t: 'p', c: [S('短期看，市场对这件事已经有一定预期，'), S('真正决定方向的是接下来两周的数据验证', { b: true }), S('；中长期则取决于盈利能否兑现。')] },
       { t: 'h2', c: [S('二、可以怎么做')] },
       { t: 'ul', items: [[S('已持有：', { b: true }), S('继续持有，设好跟踪止损。')], [S('未持有：', { b: true }), S('等回调或数据确认后分批进场。')], [S('想对冲：', { b: true }), S('可以考虑少量买入看跌期权保护。')]] },
-      { t: 'callout', c: [S('以上为演示内容，不构成投资建议。')] },
+      { t: 'callout', c: [S('以上内容不构成投资建议。')] },
     ],
   });
 
@@ -203,7 +203,7 @@ window.BOBBY_DATA = (() => {
     if (/持仓/.test(q)) return answers.portfolio;
     if (/财报/.test(q)) return answers.earnings;
     if (/AMD|Helion/i.test(q)) return answers['hot-amd'];
-    if (/IREN|Anthropic/i.test(q)) return answers['hot-iren'];
+    if (/Datadog|DDOG/i.test(q)) return answers['hot-ddog'];
     if (/SpaceX|SPCX/i.test(q)) return answers['hot-spacex'];
     return generic(q.length > 24 ? q.slice(0, 24) + '…' : q);
   };

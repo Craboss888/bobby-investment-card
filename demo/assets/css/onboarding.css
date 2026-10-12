@@ -9,8 +9,10 @@
     radial-gradient(circle at 92% 30%, rgba(214, 222, 255, .5), transparent 42%),
     radial-gradient(circle at 20% 92%, rgba(226, 240, 236, .55), transparent 40%),
     #f7f7f9;
+  overflow-y: auto; scrollbar-width: none;
   transition: opacity .45s ease, transform .5s var(--ease-out), visibility 0s linear .5s;
 }
+.onboarding::-webkit-scrollbar { display: none; }
 .onboarding.hide { opacity: 0; transform: scale(1.02); visibility: hidden; pointer-events: none; }
 .ob-progress { display: flex; align-items: center; gap: 18px; height: 40px; margin-top: 12px; }
 .ob-track { flex: 1; height: 4px; border-radius: 999px; background: rgba(143, 123, 255, .14); overflow: hidden; }
@@ -20,9 +22,9 @@
 .ob-step { flex: 1; display: flex; flex-direction: column; animation: obIn .5s var(--ease-out) both; }
 @keyframes obIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
 .ob-logo { width: 46px; height: 46px; margin: 52px auto 0; object-fit: contain; }
-.ob-title { margin-top: 36px; text-align: center; font-size: 30px; font-weight: 800; letter-spacing: .01em; color: #17191d; }
+.ob-title { margin-top: 36px; text-align: center; font-size: clamp(25px, 7.4vw, 30px); font-weight: 800; letter-spacing: .01em; color: #17191d; }
 .ob-sub { margin-top: 18px; text-align: center; font-size: 16px; color: rgba(17, 20, 24, .55); }
-.ob-options { margin-top: 44px; display: flex; flex-direction: column; gap: 12px; }
+.ob-options { margin-top: 44px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px; }
 .ob-option {
   width: 100%; min-height: 84px; padding: 16px 18px 16px 15px;
   display: flex; align-items: center; gap: 14px; text-align: left;
@@ -48,7 +50,7 @@
 .ob-option.sel .ob-radio { border-color: #6f55d8; background: #6f55d8; }
 .ob-option.sel .ob-radio::after { transform: scale(1); }
 .ob-next {
-  margin-top: auto; height: 50px; width: 100%; border-radius: 25px;
+  margin-top: auto; flex-shrink: 0; height: 50px; width: 100%; border-radius: 25px;
   display: flex; align-items: center; justify-content: center; gap: 14px;
   font-size: 17px; font-weight: 700; color: rgba(255, 255, 255, .92);
   background: #b2b3b6;
@@ -58,3 +60,12 @@
 .ob-next.ready { background: #0d0d0f; color: #fff; box-shadow: 0 10px 24px rgba(0, 0, 0, .18); }
 .ob-next.ready:active { transform: scale(.98); }
 .ob-next:disabled { cursor: default; }
+
+@media (max-height: 760px) {
+  .ob-logo { margin-top: 22px; width: 40px; height: 40px; }
+  .ob-title { margin-top: 22px; }
+  .ob-sub { margin-top: 10px; }
+  .ob-options { margin-top: 26px; gap: 10px; }
+  .ob-option { min-height: 74px; padding-top: 12px; padding-bottom: 12px; }
+  .ob-opt-sub { font-size: 13.5px; }
+}

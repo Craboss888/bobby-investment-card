@@ -77,7 +77,6 @@ window.BobbyUI = (() => {
         <div class="hot-media"><img src="${h.img}" alt="" draggable="false"></div>
         <div class="hot-meta"><span class="hot-tag">${esc(h.tag)}</span><span class="hot-time">${esc(h.time)}</span></div>
         <h3 class="hot-title">${esc(h.title)}</h3>
-        <p class="hot-body">${esc(h.body)}</p>
         <div class="hot-stocks">${h.stocks.map(s => `<span class="hot-chip">${esc(s.label)}<span class="hot-chip-div"></span><span class="${s.up ? 'up' : 'down'}">${esc(s.chg)}</span></span>`).join('')}</div>
         <div class="hot-actions"><button type="button" class="hot-btn" data-analyze="${h.id}">${sparkle}<span>分析交易策略</span></button></div>
       </article>`).join('');
@@ -217,26 +216,32 @@ window.BobbyUI = (() => {
       </div>`;
     const card = $('#proCard');
     // 卡片高度跟随当前朝向那一面的内容
+    // 卡片高度取正反两面中较高者，翻面时不改变高度，避免页面跳动
     const fitHeight = () => {
-      const face = card.querySelector(card.classList.contains('flipped') ? '.pro-back' : '.pro-front');
-      card.style.height = face.scrollHeight + 'px';
+      const front = card.querySelector('.pro-front .pro-inner').scrollHeight;
+      const back = card.querySelector('.pro-back-inner').scrollHeight;
+      card.style.height = Math.max(front, back) + 'px';
     };
     card.querySelector('.pro-art img').addEventListener('load', fitHeight);
     addEventListener('resize', fitHeight);
     document.fonts && document.fonts.ready.then(fitHeight);
     fitHeight();
-    $('#proCta').addEventListener('click', () => { card.classList.add('flipped'); fitHeight(); });
-    $('#proBack').addEventListener('click', () => { card.classList.remove('flipped'); fitHeight(); });
+    $('#proCta').addEventListener('click', () => card.classList.add('flipped'));
+    $('#proBack').addEventListener('click', () => card.classList.remove('flipped'));
+    $('#proEmail').addEventListener('input', (e) => e.target.classList.remove('error'));
     card.addEventListener('click', (e) => {
       const r = e.target.closest('[data-exp]');
       if (!r) return;
       card.querySelectorAll('[data-exp]').forEach(x => x.classList.toggle('sel', x === r));
     });
     $('#proSubmit').addEventListener('click', () => {
-      const v = $('#proEmail').value.trim();
-      if (!/^\S+@\S+\.\S+$/.test(v)) { toast('请填写有效邮箱'); $('#proEmail').focus(); return; }
-      card.classList.add('joined');
-      toast('已加入候补');
+      const email = $('#proEmail');
+      if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) {
+        email.classList.remove('error'); void email.offsetWidth; email.classList.add('error');
+        toast('请填写有效邮箱'); email.focus(); return;
+      }
+      card.classList.add('joining');
+      setTimeout(() => { card.classList.add('joined'); toast('已加入候补'); }, 220);
     });
   }
 
@@ -287,16 +292,26 @@ window.BobbyUI = (() => {
     const drawer = $('#drawer');
     const input = $('#drawerSearchInput');
     $('#drawerSearchBtn').addEventListener('click', () => { drawer.classList.add('searching'); setTimeout(() => input.focus(), 120); });
-    $('#drawerSearchCancel').addEventListener('click', () => { drawer.classList.remove('searching'); input.value = ''; filter(''); });
-    const filter = (q) => {
-      let shown = 0;
-      list.querySelectorAll('.drawer-item').forEach(it => {
-        const hit = !q || it.textContent.includes(q);
-        it.classList.toggle('is-hidden', !hit); if (hit) shown++;
-      });
-      $('#drawerEmpty').classList.toggle('show', shown === 0);
-    };
-    input.addEventListener('input', () => filter(input.value.trim()));
+    $('#drawerSearchCancel').addEventListener('click', resetSearch);
+    input.addEventListener('input', () => filterHistory(input.value.trim()));
+  }
+
+  function filterHistory(q) {
+    let shown = 0;
+    $('#drawerHistory').querySelectorAll('.drawer-item').forEach(it => {
+      const hit = !q || it.querySelector('.drawer-item-title').textContent.toLowerCase().includes(q.toLowerCase());
+      const wasHidden = it.classList.contains('is-hidden');
+      it.classList.toggle('is-hidden', !hit);
+      if (hit && wasHidden) { it.classList.remove('reveal'); void it.offsetWidth; it.classList.add('reveal'); }
+      if (hit) shown++;
+    });
+    $('#drawerEmpty').classList.toggle('show', shown === 0);
+  }
+
+  function resetSearch() {
+    $('#drawer').classList.remove('searching');
+    $('#drawerSearchInput').value = '';
+    filterHistory('');
   }
 
   function addHistory(item) {
@@ -312,5 +327,5 @@ window.BobbyUI = (() => {
     document.querySelectorAll('.drawer-item').forEach(x => x.classList.toggle('is-current', x.dataset.hist === id));
   }
 
-  return { $, esc, svg, toast, renderQuick, renderHot, renderBrief, renderPro, renderOnboarding, renderDrawer, addHistory, markCurrent };
+  return { $, esc, svg, toast, renderQuick, renderHot, renderBrief, renderPro, renderOnboarding, renderDrawer, addHistory, markCurrent, resetSearch };
 })();

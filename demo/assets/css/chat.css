@@ -4,15 +4,15 @@
 
 /* 欢迎态（新对话、无消息） */
 .chat-welcome {
-  flex: 1; min-height: 100%;
+  position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-  padding-bottom: 150px;
-  transition: opacity .3s ease, transform .4s var(--ease-out);
+  padding-bottom: 150px; pointer-events: none;
+  transition: opacity .28s ease, transform .4s var(--ease-out), visibility 0s;
 }
 .chat-welcome-logo { width: 38px; height: 38px; object-fit: contain; animation: welcomeIn .6s var(--ease-out) both; }
 .chat-welcome-title { font-family: var(--serif-cn); font-size: 29px; font-weight: 500; letter-spacing: .01em; color: #111; animation: welcomeIn .6s .06s var(--ease-out) both; }
 @keyframes welcomeIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
-.has-messages .chat-welcome { display: none; }
+.has-messages .chat-welcome { opacity: 0; visibility: hidden; transform: translateY(-14px) scale(.98); transition: opacity .28s ease, transform .4s var(--ease-out), visibility 0s linear .4s; }
 
 /* 输入框上方的快捷卡（仅新对话） */
 .chat-quick {
@@ -134,6 +134,8 @@
 .md td { color: #555; border-bottom: 1px solid rgba(17, 20, 24, .06); }
 .md tr:nth-child(even) td { background: #fafafb; }
 .md tr:last-child td { border-bottom: none; }
+.md tr.pending { visibility: hidden; }
+.md tr.shown { animation: chunkIn .35s ease both; }
 .md td.num { font-weight: 600; color: #333; }
 .md .callout {
   padding: 14px 16px; border-radius: 16px;
@@ -151,7 +153,7 @@
 .msg-action:active { transform: scale(.9); background: rgba(0, 0, 0, .05); }
 .msg-action svg { width: 19px; height: 19px; fill: none; stroke: rgba(17, 20, 24, .5); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: stroke .15s ease, fill .15s ease; }
 .msg-action.on svg { stroke: #3a62fd; fill: rgba(58, 98, 253, .12); }
-.msg-stopped { margin-top: 12px; font-size: 13px; color: var(--ink-mute); }
+.msg-stopped { margin-top: 12px; font-size: 13px; color: var(--ink-mute); animation: chunkIn .3s ease both; }
 
 /* 回到底部 */
 .scroll-down-btn {

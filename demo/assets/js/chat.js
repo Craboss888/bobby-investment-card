@@ -181,14 +181,14 @@ window.BobbyChat = (() => {
       if (!u) { done(r); return; }
 
       if (u.kind === 'table') {
-        if (!el) { el = tableEl(u.b, 0); el.classList.add('fade-in'); md.appendChild(el); ci = 0; }
-        const body = el.querySelector('tbody');
-        if (ci < u.b.rows.length) {
-          const tr = document.createElement('tr');
-          tr.className = 'fade-in';
-          tr.innerHTML = u.b.rows[ci].map((c, i) => `<td class="${i ? 'num' : ''}">${esc(c)}</td>`).join('');
-          body.appendChild(tr); ci++; pauseUntil = now + 110;
-        } else { ui++; el = null; ci = 0; }
+        // 先按完整内容排好列宽（行先隐藏），再逐行显示，避免边出边跳
+        if (!el) {
+          el = tableEl(u.b); el.classList.add('fade-in'); md.appendChild(el); ci = 0;
+          el.querySelectorAll('tbody tr').forEach(tr => tr.classList.add('pending'));
+        }
+        const rows = el.querySelectorAll('tbody tr');
+        if (ci < rows.length) { rows[ci].classList.remove('pending'); rows[ci].classList.add('shown'); ci++; pauseUntil = now + 110; }
+        else { ui++; el = null; ci = 0; }
       } else if (u.kind === 'list') {
         if (!el) { el = document.createElement(u.b.t); md.appendChild(el); u.li = 0; ci = 0; u.cur = null; }
         const item = u.b.items[u.li];
@@ -232,11 +232,13 @@ window.BobbyChat = (() => {
     r.caret?.remove();
     const think = r.m.querySelector('.think');
     if (!think.classList.contains('done')) finishThink(r.m, Math.max(1, parseInt(think.querySelector('.think-title').textContent.replace(/\D/g, '')) || 1));
+    r.m.querySelectorAll('.md tr.pending').forEach(tr => tr.remove());
     if (!silent) {
       const n = document.createElement('div');
       n.className = 'msg-stopped';
       n.textContent = '已停止生成';
       r.m.querySelector('.md').after(n);
+      r.m.querySelector('.msg-actions').classList.add('show');
     }
     run = null;
     listeners.busy(false);
