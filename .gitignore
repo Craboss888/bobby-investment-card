@@ -5,3 +5,4 @@
 node_modules/
 # 谢峰的 App 录屏/截图，可能含账户信息，不进仓库
 素材/
+.playwright-mcp/
