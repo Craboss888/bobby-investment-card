@@ -1,0 +1,60 @@
+/* 引导问卷（首次进入） */
+
+.onboarding {
+  position: absolute; inset: 0; z-index: 60;
+  display: flex; flex-direction: column;
+  padding: calc(var(--top) + 6px) 28px calc(36px + var(--safe-bottom));
+  background:
+    radial-gradient(circle at 8% 4%, rgba(255, 236, 220, .55), transparent 36%),
+    radial-gradient(circle at 92% 30%, rgba(214, 222, 255, .5), transparent 42%),
+    radial-gradient(circle at 20% 92%, rgba(226, 240, 236, .55), transparent 40%),
+    #f7f7f9;
+  transition: opacity .45s ease, transform .5s var(--ease-out), visibility 0s linear .5s;
+}
+.onboarding.hide { opacity: 0; transform: scale(1.02); visibility: hidden; pointer-events: none; }
+.ob-progress { display: flex; align-items: center; gap: 18px; height: 40px; margin-top: 12px; }
+.ob-track { flex: 1; height: 4px; border-radius: 999px; background: rgba(143, 123, 255, .14); overflow: hidden; }
+.ob-fill { height: 100%; width: 20%; border-radius: inherit; background: linear-gradient(90deg, #c9b8ff, #8f7bff); transition: width .5s var(--ease-out); }
+.ob-count { font-size: 15px; color: rgba(17, 20, 24, .45); font-variant-numeric: tabular-nums; }
+.ob-count b { font-size: 21px; font-weight: 700; color: #111; }
+.ob-step { flex: 1; display: flex; flex-direction: column; animation: obIn .5s var(--ease-out) both; }
+@keyframes obIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+.ob-logo { width: 46px; height: 46px; margin: 52px auto 0; object-fit: contain; }
+.ob-title { margin-top: 36px; text-align: center; font-size: 30px; font-weight: 800; letter-spacing: .01em; color: #17191d; }
+.ob-sub { margin-top: 18px; text-align: center; font-size: 16px; color: rgba(17, 20, 24, .55); }
+.ob-options { margin-top: 44px; display: flex; flex-direction: column; gap: 12px; }
+.ob-option {
+  width: 100%; min-height: 84px; padding: 16px 18px 16px 15px;
+  display: flex; align-items: center; gap: 14px; text-align: left;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, .72);
+  border: 1px solid rgba(255, 255, 255, .9);
+  box-shadow: 0 10px 30px rgba(30, 36, 60, .04), inset 0 1px 0 #fff;
+  transition: transform .18s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.ob-option:active { transform: scale(.985); }
+.ob-option.sel { border-color: rgba(111, 85, 216, .42); background: rgba(255, 255, 255, .92); box-shadow: 0 12px 30px rgba(111, 85, 216, .1), inset 0 1px 0 #fff; }
+.ob-ico {
+  width: 36px; height: 36px; flex-shrink: 0; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(248, 249, 250, .9); border: 1px solid rgba(12, 14, 18, .1);
+}
+.ob-ico svg { width: 19px; height: 19px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ob-copy { flex: 1; min-width: 0; }
+.ob-opt-title { font-size: 18px; font-weight: 750; color: #17191d; }
+.ob-opt-sub { margin-top: 5px; font-size: 14.5px; color: rgba(17, 20, 24, .58); }
+.ob-radio { width: 19px; height: 19px; flex-shrink: 0; border-radius: 50%; border: 1.5px solid rgba(17, 20, 24, .22); display: flex; align-items: center; justify-content: center; transition: border-color .2s ease, background .2s ease; }
+.ob-radio::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #fff; transform: scale(0); transition: transform .2s var(--ease-out); }
+.ob-option.sel .ob-radio { border-color: #6f55d8; background: #6f55d8; }
+.ob-option.sel .ob-radio::after { transform: scale(1); }
+.ob-next {
+  margin-top: auto; height: 50px; width: 100%; border-radius: 25px;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  font-size: 17px; font-weight: 700; color: rgba(255, 255, 255, .92);
+  background: #b2b3b6;
+  transition: background .25s ease, transform .15s ease, box-shadow .25s ease;
+}
+.ob-next svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ob-next.ready { background: #0d0d0f; color: #fff; box-shadow: 0 10px 24px rgba(0, 0, 0, .18); }
+.ob-next.ready:active { transform: scale(.98); }
+.ob-next:disabled { cursor: default; }
