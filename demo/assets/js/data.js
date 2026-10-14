@@ -215,13 +215,13 @@ window.BOBBY_DATA = (() => {
     TQQQ: { name: '纳指三倍做多 ETF', tech: 1, lev: 3, color: '#3a62fd' },
     AAPL: { name: '苹果', tech: 1, color: '#6b7280' },
     MSFT: { name: '微软', tech: 1, color: '#2f7fd8' },
-    AMD: { name: 'AMD', tech: 1, color: '#d4583b' },
+    AMD: { name: '超威半导体', tech: 1, color: '#d4583b' },
     GOOGL: { name: '谷歌', tech: 1, color: '#3b8f5c' },
     AMZN: { name: '亚马逊', tech: 1, color: '#c98a1c' },
-    META: { name: 'Meta', tech: 1, color: '#3a6fd8' },
-    PLTR: { name: 'Palantir', tech: 1, color: '#2b2f38' },
-    DDOG: { name: 'Datadog', tech: 1, color: '#7a4fc4' },
-    SPCX: { name: 'SpaceX', tech: 1, color: '#30343c' },
+    META: { name: 'Meta 平台', tech: 1, color: '#3a6fd8' },
+    PLTR: { name: '数据分析软件', tech: 1, color: '#2b2f38' },
+    DDOG: { name: '云监控软件', tech: 1, color: '#7a4fc4' },
+    SPCX: { name: '太空探索', tech: 1, color: '#30343c' },
     SPY: { name: '标普 500 ETF', index: 1, color: '#2f8f83' },
     QQQ: { name: '纳指 100 ETF', index: 1, tech: 1, color: '#4c6ed8' },
     KO: { name: '可口可乐', div: 1, color: '#d23b3b' },
@@ -246,6 +246,7 @@ window.BOBBY_DATA = (() => {
       options: [['short', '几个月内', '可能随时要用'], ['mid', '一两年', '中间不太会动'], ['long', '五年以上', '放着慢慢长']] },
   ];
   const prefLabels = {
+    exp: { new: '新手', some: '有些经验', pro: '非常专业' },
     dip: { add: '跌了会加仓', hold: '跌了会拿住', cut: '跌了先离场', unsure: '还没想好跌了怎么办' },
     horizon: { short: '短线', mid: '中线', long: '长线' },
   };
@@ -259,13 +260,26 @@ window.BOBBY_DATA = (() => {
     multi: { title: '多线并行者', en: 'The Multi-Threader', blind: '分散了不少，但要留意哪几只其实在同涨同跌。' },
     scout: { title: '场边观察员', en: 'The Sideline Scout', blind: '看了很久，还没想清楚自己能承受多大的跌幅。' },
   };
+  const scoutBlind = {
+    add: '想着跌了就加仓，但还没算过最多能加到多少。',
+    hold: '说会拿住，但还没经历过真实的账面亏损。',
+    cut: '跌了先离场能保护本金，也可能刚好卖在最低点。',
+  };
 
-  // 「第二天」按卡片生成的简报
-  const brief2 = {
-    kicker: '按你的卡片', ticker: 'TQQQ',
-    title: '纳指回落 2%，你的 TQQQ 放大成了 -6.2%',
-    summary: [S('iFeng，按卡片里的比例估算，昨晚你的组合约 '), S('-2.7%', { metric: true }), S('，其中 TQQQ 一格贡献了近一半；NVDA 跟跌 2.4%，TSLA 跌 1.8%。')],
-    prompts: ['TQQQ 这一跌，我的组合扛住了多少？', '为什么三倍杠杆在震荡市会磨损？'],
+  // 「第二天」的昨夜行情（演示用假数据）：简报与回答按卡片比例现算
+  const overnight = {
+    ndx: -2.1,
+    moves: { NVDA: -2.4, TSLA: -1.8, TQQQ: -6.2, AAPL: -1.1, MSFT: -1.3, AMD: -3.1, GOOGL: -1.5, AMZN: -1.7, META: -2.0, PLTR: -4.4, DDOG: -2.6, SPCX: -1.9, SPY: -1.2, QQQ: -2.1, KO: 0.4, JPM: -0.3, CASH: 0 },
+  };
+  // 第一天记下的股票，第二天简报里带一句
+  const recallNews = { AMD: 'Helion 首批客户名单本周公布', DDOG: '目标价上调后仍有买盘', PLTR: '新合同消息推动成交放大', SPCX: '下一次发射窗口定在月底' };
+
+  // 每条消息和卡片里每只股票的关系：[相关度 0–3, 说明]；没列出的按类别给默认值
+  const relevance = {
+    'hot-amd': { AMD: [3, '消息主角'], NVDA: [3, '直接竞争：Helion 打的是英伟达主场'], TQQQ: [2, '通过纳指里的 AI 权重间接受影响'], QQQ: [2, '通过纳指里的 AI 权重间接受影响'], MSFT: [1, 'AI 算力的买家，影响偏间接'], GOOGL: [1, 'AI 算力的买家，影响偏间接'], AMZN: [1, 'AI 算力的买家，影响偏间接'], META: [1, 'AI 算力的买家，影响偏间接'] },
+    'hot-ddog': { DDOG: [3, '消息主角'], MSFT: [1, '同为云软件，情绪联动'], TQQQ: [1, '纳指成分里占比很小'] },
+    'hot-spacex': { SPCX: [3, '消息主角'], TSLA: [1, '同一位创始人，情绪联动'] },
+    tesla: { TSLA: [3, '消息主角'], TQQQ: [1, '纳指成分里占比有限'], QQQ: [1, '纳指成分里占比有限'] },
   };
 
   const pfNote = { t: 'callout', c: [S('以上基于你在投资卡片里提供的持仓比例，只描述风险暴露，不构成投资建议。')] };
@@ -282,7 +296,7 @@ window.BOBBY_DATA = (() => {
       { t: 'h2', c: [S('对你的组合意味着什么')] },
       { t: 'ul', items: [
         [S('同涨同跌更明显：', { b: true }), S('AMD、NVDA、TQQQ 都在纳指 100 的 AI 主线上，这条消息引起的板块波动，会同时打在你卡片里 90% 的仓位上。')],
-        [S('你没有直接受益的仓位：', { b: true }), S('卡片里没有 AMD。如果市场转向「AI 算力分散化」，这部分涨幅你吃不到。')],
+        [S('AMD 只在你的关注里：', { b: true }), S('你的持仓里没有 AMD（它刚进了你的关注）。如果市场转向「AI 算力分散化」，你的组合主要通过 NVDA 承受这种变化。')],
         [S('TQQQ 放大波动：', { b: true }), S('若纳指因 AI 板块分歧单日波动 2%，TQQQ 约 6%，折合你的组合约 1.2 个百分点。')],
       ] },
       { t: 'h2', c: [S('接下来可以留意')] },
@@ -291,57 +305,7 @@ window.BOBBY_DATA = (() => {
     ],
   };
 
-  answers['pf-day2'] = {
-    topic: 'pf-day2', tickers: ['TQQQ'],
-    steps: steps(['读取你的投资卡片', 'NVDA 40% · TSLA 30% · TQQQ 20% · 现金 10%', '读取卡片'], ['拉取昨夜收盘数据', '纳指 -2.1%', '检索资料'], ['按比例估算组合回撤', '整理结论', '生成回答']),
-    blocks: [
-      { t: 'p', c: [S('按卡片比例估算，昨晚你的组合约 '), S('-2.7%', { b: true }), S('，同期纳指 100 是 -2.1%。你比指数多跌的部分，几乎都来自 TQQQ。')] },
-      { t: 'table', head: ['代码', '占比', '昨夜涨跌', '对组合影响'], rows: [['NVDA', '40%', '-2.4%', '-0.96%'], ['TSLA', '30%', '-1.8%', '-0.54%'], ['TQQQ', '20%', '-6.2%', '-1.24%'], ['现金', '10%', '0', '0'], ['合计', '100%', '—', '-2.74%']] },
-      { t: 'h2', c: [S('怎么理解')] },
-      { t: 'ul', items: [
-        [S('TQQQ 只占 20%，却贡献了近一半的回撤。', { b: true }), S('三倍杠杆让它在下跌日的分量相当于 60% 的纳指仓位。')],
-        [S('三只股票方向一致。', { b: true }), S('昨晚没有任何一格在涨，现金是唯一没受影响的部分。')],
-        [S('单日 -2.7% 本身不罕见。', { b: true }), S('更值得留意的是：纳指如果连续震荡，杠杆 ETF 会出现「指数回到原点、它却没回来」的磨损。')],
-      ] },
-      pfNote,
-    ],
-  };
-
-  answers['pf-leverage'] = {
-    topic: 'pf-edu', tickers: ['TQQQ'],
-    steps: steps(['理解你的问题', '杠杆 ETF 的每日重置', '准备分析'], ['用一个两天的例子演示', '整理结论', '生成回答']),
-    blocks: [
-      { t: 'p', c: [S('三倍杠杆 ETF 每天都把杠杆重新调回 3 倍，所以它跟踪的是'), S('每一天', { b: true }), S('的 3 倍，而不是一段时间的 3 倍。震荡市里，这会让它慢慢落后。')] },
-      { t: 'table', head: ['', '指数', '三倍 ETF'], rows: [['起点', '100', '100'], ['第 1 天 +10%', '110', '130'], ['第 2 天 -10%', '99', '91'], ['两天合计', '-1%', '-9%']] },
-      { t: 'p', c: [S('指数两天只跌了 1%，三倍 ETF 却跌了 9%，不是 3%。波动越大、来回越多，差距越大。')] },
-      { t: 'h2', c: [S('放到你的卡片里')] },
-      { t: 'p', c: [S('你的 TQQQ 占 20%。单边上涨时它是放大器；但在最近这种来回震荡的行情里，它在悄悄地给组合加成本。这也是你的称号旁边写着「含杠杆」的原因。')] },
-      pfNote,
-    ],
-  };
-
-  answers['pf-crash'] = {
-    topic: 'pf-edu', tickers: [],
-    steps: steps(['读取你的投资卡片', 'NVDA 40% · TSLA 30% · TQQQ 20%', '读取卡片'], ['用历史波动做情景推演', '纳指 -10% 情景', '生成回答']),
-    blocks: [
-      { t: 'p', c: [S('用一个情景推演（不是预测）：假设纳指 100 在一段时间内回落 10%，按这几只过去一年相对纳指的波动幅度估算——')] },
-      { t: 'table', head: ['代码', '占比', '估算跌幅', '对组合影响'], rows: [['NVDA', '40%', '约 -13%', '-5.2%'], ['TSLA', '30%', '约 -15%', '-4.5%'], ['TQQQ', '20%', '约 -30%', '-6.0%'], ['现金', '10%', '0', '0'], ['合计', '', '', '约 -15.7%']] },
-      { t: 'p', c: [S('纳指跌 10%，你的组合可能跌 15% 以上。', { b: true }), S('原因不是某一只股票不好，而是卡片里 90% 的仓位会在同一天朝同一个方向走。')] },
-      { t: 'p', c: [S('这正是你的称号「单核信仰者」的盲点。要不要调整、怎么调整，取决于你能承受多大的回撤——这一点只有你自己能回答。')] },
-      pfNote,
-    ],
-  };
-
-  // 回答结束后的追问建议：已建卡时按卡片生成（{top} 替换为最大持仓），未建卡时为通用问题
-  const followups = {
-    news: { built: ['这对我的 {top} 意味着什么？', '我的组合里谁对这条消息最敏感？'], plain: ['这条消息对同行业公司有什么影响？', '市场之前对这件事有预期吗？'] },
-    pf: ['科技股一起跌时，我的组合会怎样？', '我的组合里谁对这条消息最敏感？'],
-    'pf-day2': ['为什么三倍杠杆在震荡市会磨损？', '科技股一起跌时，我的组合会怎样？'],
-    'pf-edu': ['我的组合里谁对这条消息最敏感？', '帮我按卡片做一次持仓体检'],
-    checkup: ['科技股一起跌时，我的组合会怎样？', '为什么三倍杠杆在震荡市会磨损？'],
-  };
-
-  const profileKit = { universe, demoImport, pickList, questions, prefLabels, personas, brief2, followups, pfNote };
+  const profileKit = { universe, demoImport, pickList, questions, prefLabels, personas, scoutBlind, overnight, recallNews, relevance, pfNote };
 
   /* 根据用户输入挑选回答 */
   const pick = (q) => {

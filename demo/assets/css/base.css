@@ -398,6 +398,8 @@ svg { display: block; }
   transition: opacity .22s ease, transform .3s var(--ease-out), visibility 0s linear .3s;
   pointer-events: none; white-space: nowrap;
 }
+.toast.has-action { pointer-events: auto; padding-right: 8px; }
+.toast-act { margin-left: 10px; padding: 4px 8px; border-radius: 999px; font-size: 13px; font-weight: 700; color: #c9bcff; background: rgba(255, 255, 255, .08); }
 .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: opacity .22s ease, transform .3s var(--ease-out), visibility 0s; }
 
 @media (prefers-reduced-motion: reduce) {

@@ -7,12 +7,16 @@ window.BobbyUI = (() => {
 
   /* ---------- 提示条 ---------- */
   let toastTimer;
-  function toast(msg) {
+  // opt.action / opt.onAction：带一个操作按钮（如「撤销」），停留更久
+  function toast(msg, opt) {
     const el = $('#toast');
-    el.textContent = msg;
+    const act = opt && opt.action;
+    el.innerHTML = esc(msg) + (act ? `<button type="button" class="toast-act">${esc(act)}</button>` : '');
+    el.classList.toggle('has-action', !!act);
+    if (act) el.querySelector('.toast-act').onclick = () => { el.classList.remove('show'); clearTimeout(toastTimer); opt.onAction(); };
     el.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+    toastTimer = setTimeout(() => el.classList.remove('show'), act ? 4200 : 1800);
   }
 
   /* ---------- 快捷入口卡 ---------- */
@@ -185,6 +189,7 @@ window.BobbyUI = (() => {
           <div class="brief-top"><span class="brief-kicker">${esc(b.kicker)}</span><span class="brief-ticker">${esc(b.ticker)}</span></div>
           <h3 class="brief-title">${esc(b.title)}</h3>
           <p class="brief-summary">${summary}</p>
+          ${b.note ? `<p class="brief-note">${esc(b.note)}</p>` : ''}
           <div class="brief-prompts">${b.prompts.map((p, i) => `<button type="button" class="brief-prompt" data-brief="${i}"><span class="brief-prompt-idx">0${i + 1}</span><span>${esc(p)}</span></button>`).join('')}</div>
         </div>
         <footer class="brief-footer">
@@ -350,7 +355,8 @@ window.BobbyUI = (() => {
     });
     nextBtn.addEventListener('click', () => {
       el.querySelector('.ob-fill').style.width = '100%';
-      setTimeout(() => { el.classList.add('hide'); onDone(); }, 260);
+      const sel = el.querySelector('[data-ob].sel');
+      setTimeout(() => { el.classList.add('hide'); onDone(sel && sel.dataset.ob); }, 260);
     });
   }
 

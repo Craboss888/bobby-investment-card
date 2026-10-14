@@ -48,7 +48,8 @@
     content: ""; position: absolute; left: 12.5px; top: 30px; bottom: -12px; width: 1px; background: rgba(111, 85, 216, .18);
   }
   .stage-flow b { font-size: 15px; font-weight: 700; line-height: 26px; }
-  .stage-flow span { font-size: 13.5px; line-height: 1.6; color: rgba(23, 25, 29, .56); }
+  .stage-flow span { font-size: 13.5px; line-height: 1.6; color: rgba(23, 25, 29, .56); text-wrap: pretty; }
+  .stage-desc, .stage-route li, .stage-lede { text-wrap: pretty; }
   .stage-goal {
     margin-top: 26px; align-self: flex-start; padding: 8px 13px; border-radius: 999px;
     font-size: 13px; font-weight: 650; color: #4b3fa0;
@@ -104,5 +105,5 @@
     font-size: 12px; color: var(--ink-mute);
   }
   .drawer-demo span { margin-right: auto; }
-  .drawer-demo button { height: 30px; padding: 0 11px; border-radius: 15px; border: 1px solid rgba(0, 0, 0, .08); font-size: 12px; font-weight: 600; color: var(--ink-soft); background: #fff; }
+  .drawer-demo button { height: 30px; padding: 0 9px; border-radius: 15px; border: 1px solid rgba(0, 0, 0, .08); font-size: 12px; font-weight: 600; color: var(--ink-soft); background: #fff; }
 }
