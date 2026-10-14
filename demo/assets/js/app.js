@@ -167,8 +167,7 @@
   $('#newChatBtn').addEventListener('click', newChat);
 
   /* ---------- 组装 ---------- */
-  const answerFor = { hot: 'market', picks: 'picks', portfolio: 'portfolio', earnings: 'earnings' };
-  UI.renderQuick((q) => ask(q.prompt, D.answers[answerFor[q.id]]));
+  UI.renderQuick((q, question) => ask(question, D.answers[q.answer]));
   UI.renderHot((h) => ask('帮我全面解读一下这个交易热点：' + h.title, D.answers['hot-' + h.id]));
   UI.renderBrief((p) => ask(p, D.pick(p)));
   UI.renderPro();

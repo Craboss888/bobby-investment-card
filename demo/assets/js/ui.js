@@ -36,8 +36,45 @@ window.BobbyUI = (() => {
       if (!b) return;
       if (marqueeDragged && b.closest('#homeQuick')) { marqueeDragged = false; return; }
       const q = D.quickActions.find(x => x.id === b.dataset.qa);
-      if (q) onPick(q);
+      if (q) openSheet(q, b.closest('#chatQuick') ? 'bottom' : 'top', onPick);
     });
+    const sheet = $('#qaSheet');
+    sheet.querySelector('.qa-sheet-scrim').addEventListener('click', closeSheet);
+    sheet.querySelector('.qa-sheet-close').addEventListener('click', closeSheet);
+    addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
+  }
+
+  /* ---------- 快捷卡小弹窗 ---------- */
+  let sheetOpen = false;
+  function openSheet(q, place, onPick) {
+    const sheet = $('#qaSheet');
+    sheet.querySelector('.qa-sheet-icon').innerHTML = `<img src="${q.icon}" alt="">`;
+    sheet.querySelector('.qa-sheet-title').textContent = q.label;
+    const list = sheet.querySelector('.qa-sheet-list');
+    list.innerHTML = q.options.map((t, i) => `
+      <button type="button" class="qa-sheet-item" data-opt="${i}">
+        <span class="qa-sheet-idx">${i + 1}</span>
+        <span class="qa-sheet-text">${esc(t)}</span>
+        ${svg('<path d="M5 12h14M13 6l6 6-6 6"/>', 'qa-sheet-arrow')}
+      </button>`).join('');
+    list.onclick = (e) => {
+      const it = e.target.closest('[data-opt]');
+      if (!it) return;
+      closeSheet();
+      setTimeout(() => onPick(q, q.options[+it.dataset.opt]), 180);
+    };
+    sheet.classList.toggle('at-bottom', place === 'bottom');
+    sheetOpen = true;
+    sheet.classList.add('open');
+    sheet.setAttribute('aria-hidden', 'false');
+    document.activeElement && document.activeElement.blur();
+  }
+  function closeSheet() {
+    if (!sheetOpen) return;
+    sheetOpen = false;
+    const sheet = $('#qaSheet');
+    sheet.classList.remove('open');
+    sheet.setAttribute('aria-hidden', 'true');
   }
 
   function startMarquee(track) {
@@ -60,7 +97,7 @@ window.BobbyUI = (() => {
     (function tick(now) {
       const dt = Math.min(64, now - last); last = now;
       if (paused && now > resumeAt && !dragStart) paused = false;
-      if (!paused) x -= speed * dt / 1000;
+      if (!paused && !sheetOpen) x -= speed * dt / 1000;
       const h = half();
       if (h > 0) { if (x <= -h) x += h; if (x > 0) x -= h; }
       track.style.transform = `translate3d(${x}px,0,0)`;

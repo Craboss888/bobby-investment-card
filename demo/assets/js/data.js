@@ -3,10 +3,15 @@ window.BOBBY_DATA = (() => {
   const S = (text, opt = {}) => ({ text, ...opt });   // 行内片段：{text, b, href}
 
   const quickActions = [
-    { id: 'hot', label: '交易热点', icon: 'assets/img/qa-hot.png', prompt: '今天有哪些值得关注的交易热点？' },
-    { id: 'picks', label: '智能选股', icon: 'assets/img/qa-picks.png', prompt: '帮我做一次智能选股，筛选近期有催化的美股' },
-    { id: 'portfolio', label: '持仓分析', icon: 'assets/img/qa-portfolio.png', prompt: '帮我分析一下我的持仓' },
-    { id: 'earnings', label: '财报分析', icon: 'assets/img/qa-earnings.png', prompt: '本周有哪些重要财报值得关注？' },
+    { id: 'hot', label: '交易热点', icon: 'assets/img/qa-hot.png', answer: 'market',
+      options: ['看看今天市场在聊什么', '本周市场最关注的事件有哪些?', '今天有哪些股票异动值得关注?'] },
+    { id: 'picks', label: '智能选股', icon: 'assets/img/qa-picks.png', answer: 'picks',
+      options: ['帮我挑一只值得买的股票', '帮我对比几只股票，看看哪只更值得买', '暂无想法，了解最近热门股票'] },
+    { id: 'portfolio', label: '持仓分析', icon: 'assets/img/qa-portfolio.png', answer: 'portfolio',
+      options: ['帮我诊断我在RockFlow 的持仓', '我的持仓里有没有风险比较大的?', '我的持仓最近表现怎么样？需不需要调仓?'] },
+    // 财报分析的三个问题暂无 App 截图，为拟写，待核对
+    { id: 'earnings', label: '财报分析', icon: 'assets/img/qa-earnings.png', answer: 'earnings',
+      options: ['本周有哪些重要财报值得关注?', '帮我解读一家公司的最新财报', '财报前该怎么提前布局?'] },
   ];
 
   const placeholders = [
