@@ -3,6 +3,7 @@
   const D = window.BOBBY_DATA;
   const UI = window.BobbyUI;
   const Chat = window.BobbyChat;
+  const Profile = window.BobbyProfile;
   const { $ } = UI;
 
   const app = $('#app');
@@ -72,9 +73,12 @@
       UI.addHistory({ id: currentChatId, title, time: nowLabel(), q: question, a: null, answer });
       UI.markCurrent(currentChatId);
     }
-    Chat.ask(question, answer || D.pick(question));
+    const a = answer || resolve(question);
+    Chat.ask(question, a, { badge: Profile.badgeFor(a), onDone: (m) => Profile.afterAnswer(m, question, a) });
     syncQuick();
   }
+  // 有投资卡片时优先按卡片回答，否则沿用原有回答
+  const resolve = (q, hint) => Profile.answerFor(q, hint) || (hint ? D.answers[hint] : D.pick(q));
 
   function submit() {
     const q = input.value.trim();
@@ -167,9 +171,9 @@
   $('#newChatBtn').addEventListener('click', newChat);
 
   /* ---------- 组装 ---------- */
-  UI.renderQuick((q, question) => ask(question, D.answers[q.answer]));
+  UI.renderQuick((q, question) => ask(question, resolve(question, q.answer)));
   UI.renderHot((h) => ask('帮我全面解读一下这个交易热点：' + h.title, D.answers['hot-' + h.id]));
-  UI.renderBrief((p) => ask(p, D.pick(p)));
+  UI.renderBrief((p) => ask(p), () => ({ b: Profile.briefData(), day: Profile.state.day - 1 }));
   UI.renderPro();
   UI.renderDrawer((h) => {
     closeDrawer();
@@ -181,8 +185,57 @@
   }, newChat);
   Chat.init({ busy: (b) => { sendBtn.classList.toggle('is-stopping', b); syncSend(); } });
 
+  /* ---------- 投资卡片与演示控制 ---------- */
+  Profile.init({ ask: (q) => ask(q) });
+  Profile.subscribe(() => { UI.drawBrief(); syncDemo(); });
+  $('#drawerCard').addEventListener('click', () => {
+    closeDrawer();
+    if (Profile.state.built) Profile.openPage(); else Profile.openFlow('start', null, {});
+  });
+
+  function syncDemo() {
+    const s = Profile.state;
+    const d = new Date(); d.setDate(d.getDate() + s.day - 1);
+    $('#stageDayLabel').textContent = `第 ${s.day} 天`;
+    $('#stageDayDate').textContent = `${d.getMonth() + 1}月${d.getDate()}日${s.day === 1 ? ' · 今天' : ' · 明天早上'}`;
+    document.querySelectorAll('[data-demo="day"]').forEach(b => { b.textContent = s.day === 1 ? '跳到第二天' : '回到第一天'; });
+    $('#drawerCardSub').textContent = s.built ? `${Profile.analyze().title} · 查看与编辑` : '还没有卡片，30 秒建一张';
+  }
+  function resetDemo() {
+    Profile.closeFlow(true); Profile.closePage();
+    Profile.reset(); Profile.setDay(1);
+    Chat.clear(); currentChatId = null;
+    $('#onboarding').classList.add('hide');
+    goHome();
+    $('#homeScroll').scrollTop = 0;
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-demo]');
+    if (!b) return;
+    const act = b.dataset.demo;
+    if (act === 'day') {
+      const next = Profile.state.day === 1 ? 2 : 1;
+      Profile.setDay(next);
+      closeDrawer(); Profile.closePage(); Profile.closeFlow(true);
+      goHome();
+      $('#homeScroll').scrollTo({ top: $('.brief-section').offsetTop - 96, behavior: 'smooth' });
+      UI.toast(next === 2 ? '第二天早上：简报已按卡片更新' : '回到第一天');
+    } else if (act === 'reset') { resetDemo(); UI.toast('演示已重置'); }
+    else if (act === 'onboarding') { resetDemo(); UI.renderOnboarding(startCard); $('#onboarding').classList.remove('hide'); }
+    else if (act === 'card') {
+      Profile.closeFlow(true);
+      if (!Profile.state.built) Profile.seedDemo();
+      $('#onboarding').classList.add('hide');
+      Profile.openPage();
+    }
+  });
+  const startCard = () => Profile.openFlow('start', null, { onboarding: true });
+
   greeting();
   show('home');
-  if (/home/.test(location.hash)) $('#onboarding').classList.add('hide');
-  else UI.renderOnboarding(() => {});
+  if (/card|day2/.test(location.hash)) Profile.seedDemo();
+  if (/day2/.test(location.hash)) Profile.setDay(2);
+  if (/home|card|day2/.test(location.hash)) $('#onboarding').classList.add('hide');
+  else UI.renderOnboarding(startCard);
+  syncDemo();
 })();

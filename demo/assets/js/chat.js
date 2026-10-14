@@ -132,18 +132,19 @@ window.BobbyChat = (() => {
   }
 
   /* ---------- 生成 ---------- */
-  function ask(question, answer) {
+  function ask(question, answer, opts = {}) {
     stop(true);
     document.querySelector('#viewChat').classList.add('has-messages');
     userMsg(question);
     const m = bobbyMsg();
+    if (opts.badge) m.querySelector('.md').insertAdjacentHTML('beforebegin', opts.badge);
     stickBottom = true;
     requestAnimationFrame(() => toBottom(true));
 
     const md = m.querySelector('.md');
     const units = plan(answer.blocks);
     const t0 = performance.now();
-    const r = run = { m, stopped: false, timers: [], raf: 0 };
+    const r = run = { m, stopped: false, timers: [], raf: 0, onDone: opts.onDone };
     listeners.busy(true);
 
     // 计时
@@ -224,6 +225,8 @@ window.BobbyChat = (() => {
     r.timers.forEach(f => f());
     if (run === r) run = null;
     listeners.busy(false);
+    // 回答结束后的附加内容（记入卡片、追问建议）
+    if (r.onDone) r.onDone(r.m);
     if (stickBottom) setTimeout(() => toBottom(true), 60);
   }
 
@@ -285,5 +288,5 @@ window.BobbyChat = (() => {
     });
   }
 
-  return { init, ask, stop, clear, showStatic, isBusy: () => !!run };
+  return { init, ask, stop, clear, showStatic, toBottom, isBusy: () => !!run };
 })();

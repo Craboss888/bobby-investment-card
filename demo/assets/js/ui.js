@@ -168,13 +168,19 @@ window.BobbyUI = (() => {
     });
   }
 
-  /* ---------- 每日简报 ---------- */
-  function renderBrief(onPrompt) {
-    const b = D.brief;
-    const d = new Date();
+  /* ---------- 每日简报（建卡后、跳到第二天时会重绘） ---------- */
+  let briefSrc = () => ({ b: D.brief, day: 0 });
+  let briefShown = null;
+  function drawBrief() {
+    const { b, day } = briefSrc();
+    briefShown = b;
+    const d = new Date(); d.setDate(d.getDate() + day);
     const summary = b.summary.map(s => s.metric ? `<span class="brief-metric">${esc(s.text)}</span>` : esc(s.text)).join('');
-    $('#briefMount').innerHTML = `
-      <article class="brief-card">
+    const mount = $('#briefMount');
+    const prev = mount.querySelector('.brief-title');
+    const changedContent = prev && prev.textContent !== b.title;
+    mount.innerHTML = `
+      <article class="brief-card${b === D.brief ? '' : ' is-personal'}${changedContent ? ' is-fresh' : ''}">
         <div class="brief-body">
           <div class="brief-top"><span class="brief-kicker">${esc(b.kicker)}</span><span class="brief-ticker">${esc(b.ticker)}</span></div>
           <h3 class="brief-title">${esc(b.title)}</h3>
@@ -191,9 +197,13 @@ window.BobbyUI = (() => {
           </span>
         </footer>
       </article>`;
+  }
+  function renderBrief(onPrompt, source) {
+    if (source) briefSrc = source;
+    drawBrief();
     $('#briefMount').addEventListener('click', (e) => {
       const p = e.target.closest('[data-brief]');
-      if (p) onPrompt(b.prompts[+p.dataset.brief]);
+      if (p) onPrompt(briefShown.prompts[+p.dataset.brief]);
     });
   }
 
@@ -318,7 +328,7 @@ window.BobbyUI = (() => {
     const o = D.onboarding;
     const el = $('#onboarding');
     el.innerHTML = `
-      <div class="ob-progress"><div class="ob-track"><div class="ob-fill"></div></div><div class="ob-count"><b>01</b> / 05</div></div>
+      <div class="ob-progress"><div class="ob-track"><div class="ob-fill"></div></div><div class="ob-count"><b>01</b> / 02</div></div>
       <div class="ob-step">
         <img class="ob-logo" src="assets/img/logo.png" alt="">
         <h1 class="ob-title">${esc(o.title)}</h1>
@@ -395,5 +405,5 @@ window.BobbyUI = (() => {
     document.querySelectorAll('.drawer-item').forEach(x => x.classList.toggle('is-current', x.dataset.hist === id));
   }
 
-  return { $, esc, svg, toast, renderQuick, renderHot, renderBrief, renderPro, renderOnboarding, renderDrawer, addHistory, markCurrent, resetSearch };
+  return { $, esc, svg, toast, renderQuick, renderHot, renderBrief, drawBrief, renderPro, renderOnboarding, renderDrawer, addHistory, markCurrent, resetSearch };
 })();
