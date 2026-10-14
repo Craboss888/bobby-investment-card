@@ -22,14 +22,14 @@
   addEventListener('resize', fit); fit();
   // 演示「第二天早上」时，状态栏固定在 8:30
   const clock = () => {
-    if (window.BobbyProfile && window.BobbyProfile.state.day === 2) { $('#sbTime').textContent = '8:30'; return; }
-    const d = new Date(); $('#sbTime').textContent = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+    // 演示叙事：第一天晚上建卡，第二天早上回来
+    $('#sbTime').textContent = window.BobbyProfile && window.BobbyProfile.state.day === 2 ? '8:30' : '21:30';
   };
   clock(); setInterval(clock, 20000);
 
   /* ---------- 页面切换 ---------- */
   function greeting() {
-    const h = Profile.state.day === 2 ? 8 : new Date().getHours();
+    const h = Profile.state.day === 2 ? 8 : 21;
     const g = h < 5 ? '晚上好' : h < 11 ? '早上好' : h < 13 ? '中午好' : h < 18 ? '下午好' : '晚上好';
     $('#greeting').textContent = `${g}，iFeng`;
   }
@@ -191,7 +191,7 @@
 
   /* ---------- 投资卡片与演示控制 ---------- */
   Profile.init({ ask: (q) => ask(q) });
-  Profile.subscribe(() => { UI.drawBrief(); syncDemo(); clock(); greeting(); });
+  Profile.subscribe(() => { UI.drawBrief(); syncDemo(); clock(); greeting(); UI.hot.prioritize(Profile.hotScore); });
   $('#drawerCard').addEventListener('click', () => {
     closeDrawer();
     if (Profile.state.built) Profile.openPage(); else Profile.openFlow('start', null, {});
@@ -201,7 +201,7 @@
     const s = Profile.state;
     const d = new Date(); d.setDate(d.getDate() + s.day - 1);
     $('#stageDayLabel').textContent = `第 ${s.day} 天`;
-    $('#stageDayDate').textContent = `${d.getMonth() + 1}月${d.getDate()}日 · ${s.day === 1 ? '今天' : '第二天早上 8:30'}`;
+    $('#stageDayDate').textContent = `${d.getMonth() + 1}月${d.getDate()}日 · ${s.day === 1 ? '晚上 21:30' : '早上 8:30'}`;
     document.querySelectorAll('[data-demo="day"]').forEach(b => {
       const short = b.classList.contains('drawer-demo-day');
       b.textContent = s.day === 1 ? (short ? '第二天' : '跳到第二天') : (short ? '第一天' : '回到第一天');
@@ -226,7 +226,7 @@
       closeDrawer(); Profile.closePage(); Profile.closeFlow(true);
       goHome();
       $('#homeScroll').scrollTo({ top: $('.brief-section').offsetTop - 96, behavior: 'smooth' });
-      UI.toast(next === 2 ? '第二天早上：简报已按卡片更新' : '回到第一天');
+      UI.toast(next === 1 ? '回到第一天' : Profile.state.built ? '第二天早上：简报已按卡片更新' : '第二天早上：没有卡片，简报还是通用版');
     } else if (act === 'reset') { resetDemo(); UI.toast('演示已重置'); }
     else if (act === 'onboarding') { resetDemo(); UI.renderOnboarding(startCard); $('#onboarding').classList.remove('hide'); }
     else if (act === 'card') {

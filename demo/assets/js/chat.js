@@ -174,11 +174,13 @@ window.BobbyChat = (() => {
     let ui = 0, ci = 0, el = null;
     const caret = document.createElement('span');
     caret.className = 'caret';
-    const CPS = 2;              // 每帧输出字数
-    let pauseUntil = 0;
+    const RATE = 0.11;          // 每毫秒输出字数（约每秒 110 字），不随屏幕刷新率变化
+    let pauseUntil = 0, lastT = 0, CPS = 2;
 
     const step = (now) => {
       if (r.stopped) return;
+      CPS = lastT ? Math.max(1, Math.round((now - lastT) * RATE)) : 2;
+      lastT = now;
       if (now < pauseUntil) { r.raf = requestAnimationFrame(step); return; }
       const u = units[ui];
       if (!u) { done(r); return; }

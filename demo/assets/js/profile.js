@@ -40,7 +40,8 @@ window.BobbyProfile = (() => {
   const stocksOf = (s = state) => s.holdings.filter(h => !U[h.t].cash);
 
   // 头像：代码首字母 + 品类色（不用真实公司标志）
-  const avatar = (t, cls = '') => `<span class="pf-av ${cls}" style="--c:${U[t].color}">${t === 'CASH' ? '$' : t.slice(0, 2)}</span>`;
+  const abbr = { CASH: '$', AMZN: 'AZ', GOOGL: 'GO' };
+  const avatar = (t, cls = '') => `<span class="pf-av ${cls}" style="--c:${U[t].color}">${abbr[t] || t.slice(0, 2)}</span>`;
 
   // 比例取整并保证合计 100（最大余数法）
   function normalize(list) {
@@ -87,9 +88,9 @@ window.BobbyProfile = (() => {
         <div class="pfc-sheen"></div>
         <img class="pfc-mark" src="assets/img/logo.png" alt="">
         <div class="pfc-in">
-          <header class="pfc-head"><img src="assets/img/logo.png" alt=""><span>Bobby 投资卡片</span><span class="pfc-src">${{ import: '截图导入', chat: '对话录入' }[state.source] || '点选关注'}</span></header>
+          <header class="pfc-head"><img src="assets/img/logo.png" alt=""><span>Bobby 投资卡片</span>${opts.flat ? '' : `<span class="pfc-src">${{ import: '截图导入', chat: '对话录入' }[state.source] || '点选关注'}</span>`}</header>
           <div class="pfc-name"><h3 class="pfc-title">${title}</h3><div class="pfc-en">${esc(a.en)}</div></div>
-          <div class="pfc-tags">${a.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>
+          <div class="pfc-tags">${a.tags.filter(t => !(opts.flat && t === prefText('exp'))).map(t => `<span>${esc(t)}</span>`).join('')}</div>
           <div class="pfc-blind"><span class="pfc-blind-k">盲点</span><p>${esc(a.blind)}</p></div>
           <div class="pfc-mix">${mix}</div>
           <footer class="pfc-foot"><span>iFeng</span><span>${state.updated ? `更新于 ${mdLabel(state.updated)}` : `生成于 ${mdLabel(state.created || new Date())}`}</span></footer>
@@ -196,7 +197,7 @@ window.BobbyProfile = (() => {
         <div class="pf-hero">
           <div class="pf-hero-card" aria-hidden="true"><span></span><span></span><span></span></div>
           <h1 class="pf-h1">建一张你的投资卡片</h1>
-          <p class="pf-sub">不用开户。Bobby 会记住你持有和关注的股票，之后的分析和简报都围绕它们。</p>
+          <p class="pf-sub">不用开户。Bobby 会记住你持有和关注的股票，<br>之后的回答和简报都围绕它们。</p>
         </div>
         <div class="pf-choices">
           ${choice('import', 'image', '截图导入持仓', '任意券商的持仓页，金额可打码')}
@@ -328,7 +329,7 @@ window.BobbyProfile = (() => {
       const owned = new Set(mode === 'add' ? [...state.watch, ...state.holdings.map(h => h.t)] : []);
       el.innerHTML = `
         <h1 class="pf-h2">${mode === 'add' ? '添加关注' : '挑几只你关注的股票'}</h1>
-        <p class="pf-sub">${mode === 'add' ? '加进卡片后，相关的新闻会出现在你的简报里。' : '买过的、想买的、常看的都可以。'}</p>
+        <p class="pf-sub">${mode === 'add' ? '加进卡片后，相关的新闻会出现在你的简报里。' : '想买的、常看的都可以。已经持有的，建议用截图导入。'}</p>
         <div class="pf-grid">${K.pickList.map(t => `
           <button type="button" class="pf-tile${sel.has(t) ? ' sel' : ''}${owned.has(t) ? ' is-owned' : ''}" data-t="${t}" ${owned.has(t) ? 'disabled' : ''} aria-pressed="${sel.has(t)}">
             ${avatar(t)}<b>${t}</b><span>${esc(U[t].name)}</span><i class="pf-tile-check">${ic('check')}</i>
@@ -387,7 +388,7 @@ window.BobbyProfile = (() => {
       el.innerHTML = `
         <p class="pf-reveal-k">你的投资卡片</p>
         <div class="pf-reveal-card">${cardHTML({ reveal: true })}</div>
-        <p class="pf-reveal-note">${hasHold() ? '称号描述你的持仓结构' : '称号来自你的关注和情景题'}，盲点是 Bobby 最想提醒你的事。</p>
+        <p class="pf-reveal-note">${hasHold() ? '称号描述持仓结构' : '称号来自关注和情景题'}，盲点是最该留意的一件事。</p>
         <div class="pf-actions">
           <button type="button" class="pf-btn-ghost" data-act="share">${ic('share')}分享卡片</button>
           <button type="button" class="pf-btn" data-act="go">开始使用</button>
@@ -476,7 +477,7 @@ window.BobbyProfile = (() => {
         <div class="pf-empty">
           <div class="pf-empty-card" aria-hidden="true"><img src="assets/img/logo.png" alt=""></div>
           <h2>还没有投资卡片</h2>
-          <p>截一张任意券商的持仓图，或者挑几只关注的股票，30 秒就能建好。</p>
+          <p>截一张任意券商的持仓图，<br>或者挑几只关注的股票，30 秒就能建好。</p>
           <div class="pf-choices">
             ${choice('import', 'image', '截图导入持仓', '金额可以打码，截图不保存')}
             ${choice('pick', 'star', '挑几只关注', '还没买，或者不想截图')}
@@ -507,11 +508,11 @@ window.BobbyProfile = (() => {
       ${section(`持仓${h.length ? `<em>${stocksOf().length} 只股票${a.cash ? ' + 现金' : ''}</em>` : ''}`,
         h.length ? `<div class="pf-sec-acts"><button type="button" data-page="import">更新截图</button><button type="button" data-page="edit-hold">${editing.hold ? '完成' : '编辑'}</button></div>` : '', holdBody)}
       ${section(`关注<em>${watch.length} 只</em>`, watch.length ? `<div class="pf-sec-acts"><button type="button" data-page="edit-watch">${editing.watch ? '完成' : '编辑'}</button></div>` : '', watchBody)}
-      ${prefs.length ? section('偏好', '', `<div class="pf-prefs">${prefs.map(p => `<span>${esc(p)}</span>`).join('')}</div><p class="pf-sec-note">来自引导和建卡时的情景题，Bobby 用它调整讲解的深浅，比如对新手少用术语。</p>`) : ''}
+      ${prefs.length ? section('偏好', '', `<div class="pf-prefs">${prefs.map(p => `<span>${esc(p)}</span>`).join('')}</div><p class="pf-sec-note">来自引导和建卡时的情景题。比如选了「新手」：热点回答不展示短线交易策略，回答末尾附名词小抄。</p>`) : ''}
       ${section('最近记下的', '', log.length ? `<ul class="pf-log">${log.map(l => `
           <li class="${l.undone || l.removed ? 'is-undone' : ''}">
             <span class="pf-log-dot"></span>
-            <div><b>${l.undone ? '已撤销' : l.removed ? '已移除' : '加入关注'} ${l.tickers.join('、')}</b><span>${esc(l.from)} · ${esc(l.time)}</span></div>
+            <div><b>${l.undone ? '已撤销' : l.removed ? '已移除' : '加入关注'} ${l.tickers.join('、')}</b><span>${esc(l.from)} · ${l.day === state.day ? '今天' : '昨天'} ${esc(l.hm)}</span></div>
             ${l.undone || l.removed ? '' : `<button type="button" data-undo="${l.id}">撤销</button>`}
           </li>`).join('')}</ul>` : `<p class="pf-sec-note">你在对话里问到卡片之外的股票时，Bobby 会把它记到这里，每一条都可以撤销。</p>`)}
       <div class="pf-link">
@@ -529,12 +530,16 @@ window.BobbyProfile = (() => {
     if (c) { openFlow(c.dataset.choice === 'import' ? 'album' : 'pick', 'build'); return; }
     const dh = e.target.closest('[data-del-hold]');
     if (dh) {
-      const before = { holdings: state.holdings.map(x => ({ ...x })), source: state.source };
+      const before = { holdings: state.holdings.map(x => ({ ...x })), source: state.source, built: state.built };
       const t = dh.dataset.delHold;
+      const oldTitle = analyze().title;
       state.holdings = normalize(state.holdings.filter(x => x.t !== t));
       if (!stocksOf().length) { state.holdings = []; state.source = 'pick'; }
+      const empty = !state.holdings.length && !state.watch.length;
+      if (empty) state.built = false;
       changed();
-      toast(`已删除 ${nameOf(t)}，称号已更新`, { action: '撤销', onAction: () => { Object.assign(state, before); changed(); toast(`已恢复 ${nameOf(t)}`); } });
+      const msg = empty ? `已删除 ${nameOf(t)}，卡片已经空了` : analyze().title !== oldTitle ? `已删除 ${nameOf(t)}，称号变成「${analyze().title}」` : `已删除 ${nameOf(t)}`;
+      toast(msg, { action: '撤销', onAction: () => { Object.assign(state, before); changed(); toast(`已恢复 ${nameOf(t)}`); } });
       return;
     }
     const dw = e.target.closest('[data-del-watch]');
@@ -542,6 +547,7 @@ window.BobbyProfile = (() => {
       const t = dw.dataset.delWatch;
       state.watch = state.watch.filter(x => x !== t);
       state.log.forEach(l => { if (!l.undone && l.tickers.includes(t) && !l.tickers.some(x => state.watch.includes(x))) l.removed = true; });
+      if (!state.holdings.length && !state.watch.length) { state.built = false; toast('卡片已经空了'); }
       changed(); return;
     }
     const u = e.target.closest('[data-undo]');
@@ -617,17 +623,19 @@ window.BobbyProfile = (() => {
       const lev = levHold();
       return {
         kicker: '按你的卡片', ticker: (lev || worst).t,
-        title: lev ? `纳指回落 ${Math.abs(N.ndx)}%，你卡片里的 ${lev.t} 放大成了 ${pct(mv(lev.t))}` : `纳指回落 ${Math.abs(N.ndx)}%，你卡片里波动最大的是 ${worst.t}`,
-        summary: [S('按卡片比例估算，这种行情下你的组合波动约 '), S(pct(total), { metric: true }), S(`，${worst.t} 一格占了${share >= 40 ? '近一半' : ` ${share}%`}。`), ...recallSeg],
+        title: lev ? `纳指跌 ${Math.abs(N.ndx)}%，你卡片里的 ${lev.t} 跌了 ${Math.abs(mv(lev.t))}%` : `纳指跌 ${Math.abs(N.ndx)}%，你卡片里跌得最多的是 ${worst.t}`,
+        summary: [S('按卡片比例估算，组合约跌 '), S(`${Math.abs(total).toFixed(1)}%`, { metric: true }), S(`，${worst.t} 一格占了${share >= 40 ? '近一半' : ` ${share}%`}。`), ...recallSeg],
         note: '按你在卡片里提供的比例估算，仅供参考，不构成投资建议。',
-        prompts: ['昨晚这一跌，我的组合扛住了多少？', lev ? '为什么三倍杠杆在震荡市会磨损？' : '科技股一起跌时，我的组合会怎样？'],
+        prompts: ['昨晚这一跌，落到我的组合上是多少？', lev ? '为什么三倍杠杆在震荡市会磨损？' : '科技股一起跌时，我的组合会怎样？'],
       };
     }
     const w = state.watch.slice(0, 3);
+    const wst = [...state.watch].sort((a, b) => mv(a) - mv(b))[0];
+    const quiz = { hold: '你说过跌了会拿住——这就是一次小测验。', add: '你说过跌了想加仓——先想想最多加到多少。', cut: '你说过跌了会先离场——这次的幅度到你的线了吗？' }[state.prefs.dip] || '';
     return {
-      kicker: '按你的关注', ticker: w[0] || 'NDX',
-      title: `纳指回落 ${Math.abs(N.ndx)}%，你关注的 ${w.join('、')} 怎么走`,
-      summary: [S(`${w.map(t => `${t} ${pct(mv(t))}`).join('，')}。`), ...recallSeg, S('导入持仓后，简报会算出这对你的组合意味着什么。')],
+      kicker: '按你的关注', ticker: wst,
+      title: `纳指跌 ${Math.abs(N.ndx)}%，你关注的 ${wst} 跌得最多`,
+      summary: [S(`${w.map(t => `${t} ${pct(mv(t))}`).join('，')}。`), S(`${wst} 跌得最多：${U[wst].index ? '指数基金跟着大盘走' : U[wst].div ? '防御型股票通常跌得少，这次也不例外' : '高估值的成长股，在指数回落时通常跌得更深'}。`), ...(quiz ? [S(quiz)] : recallSeg)],
       note: '按你的关注列表生成，仅供参考，不构成投资建议。',
       prompts: ['我关注的这几只为什么常一起涨跌？', '截图导入持仓后能多看到什么？'],
     };
@@ -686,7 +694,7 @@ window.BobbyProfile = (() => {
       { t: 'table', head: ['持仓', '占比', '类型'], rows },
       { t: 'h2', c: [S('一句话')] },
       { t: 'p', c: [S(`你是「${a.title}」：`), S(a.blind, { b: true })] },
-      { t: 'h2', c: [S('三个值得知道的数字')] },
+      { t: 'h2', c: [S('值得知道的几点')] },
       { t: 'ul', items },
     ];
     if (/调仓|调整|风险/.test(q)) blocks.push({ t: 'p', c: [S('要不要调仓、怎么调，取决于你能承受多大的回撤和这笔钱打算放多久——这两点只有你自己能回答。我能帮你做的，是把每种调整前后的风险暴露算清楚。')] });
@@ -697,7 +705,7 @@ window.BobbyProfile = (() => {
   // 「谁对这条消息最敏感」：先按和消息的关系排，再按波动幅度排
   function sensitivityAnswer() {
     const rel = K.relevance[lastTopic.topic] || {};
-    const relOf = (t) => rel[t] || (U[t].cash ? [0, '不受影响'] : U[t].tech ? [1, '同板块情绪联动'] : [0.5, '关联较弱']);
+    const relOf = (t) => rel[t] || (U[t].cash ? [0, '不受影响'] : U[t].tech ? [1, '科技股整体情绪联动'] : [0.5, '关联较弱']);
     const list = [
       ...stocksOf().map(x => ({ t: x.t, w: x.w + '%' })),
       ...state.watch.filter(t => !state.holdings.some(h => h.t === t)).map(t => ({ t, w: '关注' })),
@@ -768,14 +776,14 @@ window.BobbyProfile = (() => {
     const lev = levHold();
     const rows = cs.map(x => [nameOf(x.t), x.w + '%', U[x.t].cash ? '0' : pct(x.m), x.c ? pct(x.c, 2) : '0']);
     rows.push(['合计', '100%', '—', pct(total, 2)]);
-    const items = [[S(`${worst.t} 一格贡献了 ${share}% 的波动。`, { b: true }), S(lev && worst.t === lev.t ? `它只占 ${lev.w}%，但三倍杠杆让它在下跌日的分量相当于 ${lev.w * 3}% 的纳指仓位。` : '它是你卡片里比例和波动乘起来最大的一格。')]];
+    const items = [[S(`${worst.t} 一格贡献了 ${share}% 的跌幅。`, { b: true }), S(lev && worst.t === lev.t ? `它只占 ${lev.w}%，但三倍杠杆让它在下跌日的分量相当于 ${lev.w * 3}% 的纳指仓位。` : '它是你卡片里比例和波动乘起来最大的一格。')]];
     items.push([S(`${cs.filter(x => x.m < 0).length} 格同向下跌。`, { b: true }), S(state.holdings.some(x => U[x.t].cash) ? '现金是唯一没受影响的部分。' : '卡片里没有现金，没有缓冲。')]);
     if (lev) items.push([S('单日波动本身不罕见。', { b: true }), S('更值得留意的是：纳指如果连续震荡，杠杆 ETF 会出现「指数回到原点、它却没回来」的磨损。')]);
     return {
       topic: 'pf-day2', tickers: [],
       steps: pfSteps(['拉取昨夜收盘数据', `纳指 ${N.ndx}%`, '检索资料']),
       blocks: [
-        { t: 'p', c: [S('按卡片比例估算，昨晚这种行情下你的组合波动约 '), S(pct(total), { b: true }), S(`，同期纳指 100 是 ${pct(N.ndx)}。`)] },
+        { t: 'p', c: [S('按卡片比例估算，昨晚你的组合约跌 '), S(`${Math.abs(total).toFixed(1)}%`, { b: true }), S(`，同期纳指 100 跌 ${Math.abs(N.ndx)}%。`)] },
         { t: 'table', head: ['代码', '占比', '昨夜涨跌', '按比例折算'], rows },
         { t: 'h2', c: [S('怎么理解')] },
         { t: 'ul', items },
@@ -833,26 +841,73 @@ window.BobbyProfile = (() => {
     };
   }
 
+  // AMD 热点 × 我的 NVDA（录屏主线）：数字按卡片现算
+  function amdNvdaAnswer() {
+    const a = analyze();
+    const nv = state.holdings.find(h => h.t === 'NVDA');
+    const lev = levHold();
+    const expo = Math.round(nv.w + (lev ? lev.w * 3 * 0.09 : 0));
+    const amdWatched = state.watch.includes('AMD');
+    const items = [[S('同涨同跌更明显：', { b: true }), S(`AMD、英伟达${lev ? `、${lev.t}` : ''} 都在纳指 100 的 AI 主线上，这条消息引起的板块波动，会同时打在你卡片里 ${a.tech}% 的科技仓位上。`)]];
+    items.push([S(amdWatched ? 'AMD 只在你的关注里：' : '你没有 AMD：', { b: true }), S(`你的持仓里没有 AMD${amdWatched ? '（它刚进了你的关注）' : ''}。如果市场转向「AI 算力分散化」，你的组合主要通过 NVDA 承受这种变化。`)]);
+    if (lev) items.push([S(`${lev.t} 放大波动：`, { b: true }), S(`若纳指因 AI 板块分歧单日波动 2%，${lev.t} 约 6%，折合你的组合约 ${(lev.w * 0.06).toFixed(1)} 个百分点。`)]);
+    return {
+      topic: 'pf', tickers: ['NVDA', 'AMD'],
+      steps: pfSteps(['对比 Helion 与英伟达机架方案', '已读取 8 条来源', '检索资料']),
+      blocks: [
+        { t: 'p', c: [S('按你的卡片，'), S(`NVDA 占 ${nv.w}%${nv === stocksOf()[0] ? '，是你最大的一格' : ''}`, { b: true }), S(lev ? `；${lev.t} 通过三倍杠杆又间接放大了约 ${Math.round(lev.w * 0.27)}% 的英伟达，你对英伟达的实际暴露大约是 ${expo}%。` : '。')] },
+        { t: 'h2', c: [S('判断')] },
+        { t: 'p', c: [S('短期看，这是竞争层面的噪音，不改变英伟达的基本盘；但它是「AI 算力不再只有一家」叙事的又一个信号。', { b: true })] },
+        { t: 'p', c: [S('Helion 瞄准的是机架级整机方案，正是英伟达 GB 系列的主场。英伟达的订单能见度仍然很高，市场更可能把这条消息理解为「需求够大，容得下第二家」——对 AMD 是加分，对英伟达是估值上限的讨论。')] },
+        { t: 'h2', c: [S('对你的组合意味着什么')] },
+        { t: 'ul', items },
+        { t: 'h2', c: [S('接下来可以留意')] },
+        { t: 'ol', items: [[S('英伟达下次财报里数据中心营收的增速')], [S('Helion 首批客户名单与出货时间')], [S('云厂商资本开支指引是否继续上调')]] },
+        note(),
+      ],
+    };
+  }
+
+  // 未建卡用户：介绍投资卡片（作为通用追问的答案）
+  function cardIntroAnswer() {
+    return {
+      topic: 'card-intro', tickers: [],
+      steps: steps(['理解你的问题', '不开户也能用的个性化', '准备分析'], ['整理做法', '整理结论', '生成回答']),
+      blocks: [
+        { t: 'p', c: [S('建一张投资卡片就行，不用开户，30 秒：')] },
+        { t: 'ol', items: [
+          [S('截图导入：', { b: true }), S('任意券商的持仓页截一张图，我只读代码和比例，金额自动打码，截图不保存。')],
+          [S('或者挑几只关注：', { b: true }), S('还没买、不想截图，就点选你常看的股票。')],
+        ] },
+        { t: 'p', c: [S('之后你在对话里问到卡片之外的股票，我会顺手记进关注（每一条都能撤销）；第二天的简报只讲你卡片里的股票。')] },
+      ],
+    };
+  }
+
   // 已建卡时问「该不该买 / 卖」：不替用户决定，把这只股票放回卡片里看
   function decisionAnswer(t, q) {
     const x = state.holdings.find(h => h.t === t);
+    const buy = /买|加仓/.test(q) && !/卖/.test(q);
     const drop = x ? -20 * x.w / 100 : 0;
     const items = [];
     if (x) {
       items.push([S('它在卡片里的分量：', { b: true }), S(`${t} 占 ${x.w}%${U[t].lev ? '，而且是三倍杠杆' : ''}。`)]);
       items.push([S('如果它再跌 20%：', { b: true }), S(`按比例，你的组合约 ${pct(drop)}${U[t].lev ? '；而纳指只要跌 7% 左右，它就可能跌掉 20%' : ''}。`)]);
     } else {
-      items.push([S('它还不在你的持仓里：', { b: true }), S(`${t} ${state.watch.includes(t) ? '在你的关注里' : '不在你的卡片里'}。如果买入，它和你现有的科技仓位大概率同涨同跌。`)]);
+      items.push([S('它还不在你的持仓里：', { b: true }), S(`${t} ${state.watch.includes(t) ? '在你的关注里' : '不在你的卡片里'}。${hasHold() && U[t].tech && analyze().tech >= 50 ? '如果买入，它和你现有的科技仓位大概率同涨同跌。' : ''}`)]);
     }
     if (state.prefs.horizon || state.prefs.dip) items.push([S('你建卡时说过：', { b: true }), S(`${[prefText('dip'), prefText('horizon')].filter(Boolean).join('、')}。拿这句话对照一下现在的想法。`)]);
     return {
       topic: 'pf-decide', tickers: [t],
       steps: pfSteps([`把 ${t} 放回你的卡片里看`, '仓位 · 波动 · 你的偏好', '整理数据']),
       blocks: [
-        { t: 'p', c: [S(`要不要${/买|加/.test(q) ? '买' : '卖'} ${t}，我不替你决定。`, { b: true }), S('我能做的是把它放回你的卡片里，看清楚这个决定会改变什么：')] },
+        { t: 'p', c: [S(`要不要${buy ? '买' : '卖'} ${t}，我不替你决定。`, { b: true }), S('我能做的是把它放回你的卡片里，看清楚这个决定会改变什么：')] },
         { t: 'ul', items },
         { t: 'h2', c: [S('决定之前，可以先问自己')] },
-        { t: 'ol', items: [[S('当初买它的理由，现在还成立吗？')], [S('如果明天再跌 10%，我会怎么做？')], [S('这笔钱多久之后要用？')]] },
+        { t: 'ol', items: (buy
+          ? ['它和你现有的仓位，是不是同一个赌注？', '打算拿多久？', '买入后最多能接受跌多少？']
+          : x ? ['当初买它的理由，现在还成立吗？', '如果明天再跌 10%，我会怎么做？', '卖掉之后，这笔钱打算做什么？']
+            : ['它在你的关注里多久了？关注的理由变了吗？', '如果买入，它和你现有的仓位是不是同一个赌注？', '最多能接受跌多少？']).map(x2 => [S(x2)]) },
         note(),
       ],
     };
@@ -870,17 +925,25 @@ window.BobbyProfile = (() => {
     empty.forEach(x => { x.w = Math.max(1, (100 - known) / empty.length); });
     return normalize(hold);
   }
+  const MENTION = /我(现在)?(有|持有|买了|拿着)\s*([A-Za-z]{2,5}|英伟达|特斯拉|苹果|微软|谷歌|亚马逊)|(\d{1,3}\s*%|一半|各占|各一半)/;
+  const isMention = (q) => /我(现在)?(有|持有|买了|拿着)/.test(q) && MENTION.test(q) && detect(q).length > 0;
   function mentionAnswer(q) {
     mention = parseMention(q);
     if (!mention) return null;
+    const techW = mention.filter(x => U[x.t].tech).reduce((n, x) => n + x.w, 0);
+    const judge = mention.length === 1
+      ? [S('只有一只股票：', { b: true }), S('它的涨跌就是你组合的涨跌，这是最大的风险来源。')]
+      : techW >= 70 ? [S(`${mention.filter(x => U[x.t].tech).length} 只都在科技成长方向，`), S('它们大多在同一天朝同一个方向走', { b: true }), S('。这是你组合里最大的风险来源，比任何一只股票本身的好坏都重要。')]
+        : [S(`科技成长占 ${techW}%，`), S('分散程度还可以', { b: true }), S('。值得留意的是哪几只其实会同涨同跌。')];
+    const ask2 = state.built ? '要不要用这个比例更新你的投资卡片？更新后，简报和之后的回答都会按新比例来。' : '要不要把它们存进投资卡片？存了以后，每天的简报和之后的回答都会按这个比例来，不用每次重说。';
     return {
       topic: 'mention', tickers: [],
       steps: steps(['理解你的问题', mention.map(x => `${x.t} ${x.w}%`).join(' · '), '读取持仓'], ['做一次简版分析', '整理结论', '生成回答']),
       blocks: [
         { t: 'p', c: [S('按你说的，先做一次简版分析：')] },
         { t: 'table', head: ['持仓', '占比', '类型'], rows: mention.map(x => [x.t, x.w + '%', U[x.t].lev ? '杠杆 ETF' : U[x.t].index ? '宽基指数' : U[x.t].div ? '高股息' : '科技成长']) },
-        { t: 'p', c: [S(`${mention.filter(x => U[x.t].tech).length} 只都在科技成长方向，`), S('它们大多在同一天朝同一个方向走', { b: true }), S('。这是你组合里最大的风险来源，比任何一只股票本身的好坏都重要。')] },
-        { t: 'p', c: [S('要不要把它们存进投资卡片？存了以后，每天的简报和之后的回答都会按这个比例来，不用每次重说。')] },
+        { t: 'p', c: judge },
+        { t: 'p', c: [S(ask2)] },
         { t: 'callout', c: [S('以上基于你在对话里提供的持仓比例，只描述风险暴露，不构成投资建议。')] },
       ],
     };
@@ -889,15 +952,17 @@ window.BobbyProfile = (() => {
   // 有卡片时，优先按卡片回答；返回 null 表示交给原有的回答
   function answerFor(q, hint) {
     if (/三倍杠杆|杠杆.*磨损/.test(q)) return leverageAnswer();
-    if (!state.built) return /我(有|持有|买了|拿着)/.test(q) ? mentionAnswer(q) : null;
+    if (isMention(q)) return mentionAnswer(q);
+    if (/怎么让 Bobby 记住/.test(q)) return cardIntroAnswer();
+    if (!state.built) return null;
     if (/一起涨跌/.test(q)) return coMoveAnswer();
     if (/截图导入持仓后/.test(q)) return importBenefitAnswer();
-    if (/扛住|这一跌/.test(q) && hasHold()) return overnightAnswer();
+    if (/扛住|这一跌|落到/.test(q) && hasHold()) return overnightAnswer();
     if (/一起跌|会怎样/.test(q)) return crashAnswer() || checkupAnswer(q);
     if (/最敏感/.test(q)) return sensitivityAnswer();
     if (/意味着什么/.test(q)) {
       const t = detect(q)[0] || topHolding();
-      if (t === 'NVDA' && lastTopic.topic === 'hot-amd' && state.holdings.some(h => h.t === 'NVDA')) return D.answers['pf-amd-nvda'];
+      if (t === 'NVDA' && lastTopic.topic === 'hot-amd' && state.holdings.some(h => h.t === 'NVDA')) return amdNvdaAnswer();
       return impactAnswer(t);
     }
     const t = detect(q).find(inCard) || (/买|卖|加仓|减仓|止损|该不该/.test(q) && detect(q)[0]);
@@ -906,14 +971,51 @@ window.BobbyProfile = (() => {
     return null;
   }
 
-  // 新手：热点回答隐藏「激进」做法
-  function adapt(answer) {
-    if (state.prefs.exp !== 'new' || !(answer.topic || '').startsWith('hot-')) return answer;
-    const blocks = answer.blocks.map(b => (b.t === 'ol' && b.items.some(it => /^激进/.test(it[0].text))) ? { ...b, items: b.items.filter(it => !/^激进/.test(it[0].text)) } : b);
-    const i = blocks.findIndex(b => b.t === 'callout');
-    blocks.splice(i < 0 ? blocks.length : i, 0, { t: 'callout', c: [S('你在引导里选了「新手入门」，', { b: true }), S('这里隐藏了短线激进的做法，只保留稳健与观望两种思路。')] });
-    return { ...answer, blocks };
+  // 卡片里每只股票和某条热点的关系
+  const relOf = (topic, t) => (K.relevance[topic] || {})[t] || (U[t].cash ? [0, '不受影响'] : U[t].tech ? [1, '科技股整体情绪联动'] : [0.5, '关联较弱']);
+  function hotScore(id) {
+    if (!state.built) return { score: 0, label: '' };
+    const topic = 'hot-' + id;
+    const own = [...stocksOf().map(x => x.t), ...state.watch];
+    const best = own.map(t => ({ t, r: relOf(topic, t)[0] })).sort((a, b) => b.r - a.r)[0];
+    if (!best || best.r < 2) return { score: best ? best.r : 0, label: '' };
+    return { score: best.r, label: `和你的 ${best.t} ${best.r >= 3 ? '直接相关' : '相关'}` };
   }
+
+  // 按卡片和经验改写原有回答：热点回答顶部加「和你的卡片有关」；新手把交易策略换成对卡片的影响，并附名词小抄
+  function adapt(answer) {
+    const tp = answer.topic || '';
+    let blocks = answer.blocks;
+    if (tp.startsWith('hot-') && state.built) {
+      const rel = stocksOf().map(x => ({ x, r: relOf(tp, x.t) })).filter(o => o.r[0] >= 2).sort((a, b) => b.r[0] - a.r[0]);
+      if (rel.length) blocks = [{ t: 'callout', c: [S('和你的卡片有关：', { b: true }), S(rel.map(o => `${o.x.t} 占 ${o.x.w}%，${o.r[1]}`).join('；') + '。')] }, ...blocks];
+    }
+    if (tp.startsWith('hot-') && state.prefs.exp === 'new') {
+      const h = blocks.findIndex(b => b.t === 'h2' && /交易策略/.test(b.c[0].text));
+      if (h >= 0) {
+        const own = stocksOf();
+        const repl = own.length
+          ? [{ t: 'h2', c: [S('三、对你的卡片意味着什么')] }, { t: 'ul', items: own.map(x => [S(`${x.t}（${x.w}%）：`, { b: true }), S(relOf(tp, x.t)[1] + '。')]) }]
+          : [{ t: 'h2', c: [S('三、新手先看什么')] }, { t: 'p', c: [S('先别急着交易。看清这条消息影响的是哪几家公司、市场之前有没有预期，比判断明天涨跌更重要。')] }];
+        blocks = [...blocks.slice(0, h), ...repl, { t: 'callout', c: [S('你选了「新手入门」，', { b: true }), S('这里不展示短线交易策略。')] }, ...blocks.slice(h + 2).filter(b => b.t !== 'callout')];
+      }
+    }
+    if (state.prefs.exp === 'new' && /^(hot-|pf|checkup)/.test(tp)) {
+      const text = JSON.stringify(blocks);
+      const terms = Object.entries(GLOSSARY).filter(([k]) => text.includes(k)).slice(0, 3);
+      if (terms.length) blocks = [...blocks, { t: 'callout', c: [S('名词小抄　', { b: true }), S(terms.map(([k, v]) => `${k}：${v}`).join('；') + '。')] }];
+    }
+    return blocks === answer.blocks ? answer : { ...answer, blocks };
+  }
+  const GLOSSARY = {
+    机架级: '把芯片、服务器、网络打包成一整柜一起卖',
+    估值: '市场愿意为这家公司的盈利付多少倍的价格',
+    资本开支: '公司花在机房、服务器这类长期设备上的钱',
+    杠杆: '用借来的钱放大涨跌，三倍杠杆就是涨跌都放大三倍',
+    回撤: '从最高点跌下来的幅度',
+    情景推演: '假设某种行情发生，算一算会怎样，不是预测',
+    暴露: '你的钱有多少会跟着某个因素一起涨跌',
+  };
 
   function followupsFor(answer) {
     const topic = answer.topic || '';
@@ -921,7 +1023,7 @@ window.BobbyProfile = (() => {
     const crash = '科技股一起跌时，我的组合会怎样？', checkup = '帮我按卡片做一次持仓体检';
     const watchPair = ['我关注的这几只为什么常一起涨跌？', '截图导入持仓后能多看到什么？'];
     let list;
-    if (!state.built) list = /^hot-|^tesla$|^market$/.test(topic) ? ['这条消息对同行业公司有什么影响？', '市场之前对这件事有预期吗？'] : ['今日市场概览', '本周有哪些重要财报值得关注？'];
+    if (!state.built) list = topic === 'card-intro' ? ['今日市场概览', '本周有哪些重要财报值得关注？'] : ['不用开户，怎么让 Bobby 记住我关心的股票？', '今日市场概览'];
     else if (/^hot-|^tesla$|^market$/.test(topic)) list = [hold ? '这对我的 {top} 意味着什么？' : '这对我关注的 {top} 意味着什么？', hold ? '我的组合里谁对这条消息最敏感？' : watchPair[0]];
     else if (!hold) list = topic === 'pf-watch' ? [...watchPair, '今日市场概览'] : watchPair;
     else if (topic === 'pf') list = [crash, '我的组合里谁对这条消息最敏感？'];
@@ -929,7 +1031,8 @@ window.BobbyProfile = (() => {
     else if (topic === 'pf-crash' || topic === 'pf-edu') list = [checkup, lev ? '为什么三倍杠杆在震荡市会磨损？' : '今日市场概览'];
     else if (topic === 'checkup' || topic === 'portfolio') list = [topic === 'portfolio' ? checkup : crash, lev ? '为什么三倍杠杆在震荡市会磨损？' : crash];
     else if (topic === 'pf-decide') list = [crash, checkup];
-    else list = ['这对我的 {top} 意味着什么？', checkup];
+    else if (topic === 'mention') list = [checkup, crash];
+    else list = lastTopic.topic ? ['这对我的 {top} 意味着什么？', checkup] : [crash, checkup];
     // {top}：优先用这条回答涉及、且在卡片里的股票
     const tks = answer.tickers || [];
     const top = tks.find(t => state.holdings.some(h => h.t === t)) || (hold ? topHolding() : tks.find(inCard) || topHolding()) || '持仓';
@@ -952,7 +1055,7 @@ window.BobbyProfile = (() => {
     box.className = 'msg-extras';
     const tickers = [...new Set([...(answer.tickers || []), ...(tp === 'mention' ? [] : detect(question))])].filter(t => U[t] && !U[t].cash);
     const data = { answer, tickers, entry: null, builtBefore: state.built, mention: tp === 'mention' ? mention : null };
-    data.hadNudge = !state.built && (tickers.length > 0 || tp === 'portfolio' || !!data.mention);
+    data.hadNudge = !state.built && (tickers.length > 0 || tp === 'portfolio' || tp === 'card-intro' || !!data.mention);
     if (state.built) data.entry = capture(tickers, tp.startsWith('hot-') ? '来自热点' : '来自对话');
     extras.set(box, data);
     renderExtras(box);
@@ -963,7 +1066,7 @@ window.BobbyProfile = (() => {
   function capture(tickers, from) {
     const fresh = tickers.filter(t => !inCard(t));
     if (!fresh.length) return null;
-    const entry = { id: 'l' + Date.now() + Math.random().toString(36).slice(2, 5), tickers: fresh, from, time: '今天 ' + hm(), undone: false };
+    const entry = { id: 'l' + Date.now() + Math.random().toString(36).slice(2, 5), tickers: fresh, from, day: state.day, hm: hm(), undone: false };
     state.log.unshift(entry);
     state.watch.push(...fresh);
     return entry;
@@ -976,6 +1079,8 @@ window.BobbyProfile = (() => {
     if (d.entry) html += capturePill(d.entry);
     else if (state.built && !d.builtBefore && box === pendingBox) {
       html += `<button type="button" class="pf-nudge is-done" data-cap-open>${ic('check')}<span>卡片已生成，下面的追问会按它来</span>${ic('chev')}</button>`;
+    } else if (state.built && d.mention && !d.saved) {
+      html += `<button type="button" class="pf-nudge" data-nudge="save">${ic('card')}<span>用这个比例更新卡片</span>${ic('chev')}</button>`;
     } else if (!state.built && d.hadNudge) {
       const label = d.mention ? `把 ${d.mention.map(x => x.t).join('、')} 存进投资卡片`
         : d.tickers.length ? `建投资卡片，Bobby 会记住你关心的 ${d.tickers[0]}` : '不用开户：截一张持仓图建投资卡片';
@@ -1039,8 +1144,11 @@ window.BobbyProfile = (() => {
       pendingBox = n.closest('.msg-extras');
       const d = extras.get(pendingBox);
       if (n.dataset.nudge === 'save' && d && d.mention) {
+        if (state.built) state.updated = new Date();
+        d.saved = true;
         state.holdings = d.mention.map(x => ({ ...x }));
         state.source = 'chat';
+        renderExtras(pendingBox);
         ctx = {}; stack = [];
         flow.classList.add('open');
         build();
@@ -1082,7 +1190,7 @@ window.BobbyProfile = (() => {
 
   return {
     init, state, subscribe: (f) => subs.push(f), openFlow, openPage, closePage, closeFlow,
-    answerFor, afterAnswer, badgeFor, adapt, briefData, setDay, setExp, seedDemo, reset, analyze,
+    answerFor, afterAnswer, badgeFor, adapt, hotScore, briefData, setDay, setExp, seedDemo, reset, analyze,
     isOpen: () => page.classList.contains('open') || flow.classList.contains('open'),
   };
 })();

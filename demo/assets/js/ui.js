@@ -110,19 +110,32 @@ window.BobbyUI = (() => {
   }
 
   /* ---------- 热门交易卡片堆 ---------- */
+  const hotApi = { prioritize: () => {} };
   function renderHot(onAnalyze) {
     const stack = $('#hotStack');
     const sparkle = svg('<path d="M12 3.5l1.7 4.6a3 3 0 0 0 1.8 1.8L20 11.5l-4.5 1.6a3 3 0 0 0-1.8 1.8L12 19.5l-1.7-4.6a3 3 0 0 0-1.8-1.8L4 11.5l4.5-1.6a3 3 0 0 0 1.8-1.8z"/><path d="M19 3v3M17.5 4.5h3"/>');
     stack.innerHTML = D.hotTrades.map((h, i) => `
       <article class="hot-card" data-id="${h.id}" data-pos="${i}">
         <div class="hot-media"><img src="${h.img}" alt="" draggable="false"></div>
-        <div class="hot-meta"><span class="hot-tag">${esc(h.tag)}</span><span class="hot-time">${esc(h.time)}</span></div>
+        <div class="hot-meta"><span class="hot-tag">${esc(h.tag)}</span><span class="hot-time">${esc(h.time)}</span><span class="hot-rel"></span></div>
         <h3 class="hot-title">${esc(h.title)}</h3>
         <div class="hot-stocks">${h.stocks.map(s => `<span class="hot-chip">${esc(s.label)}<span class="hot-chip-div"></span><span class="${s.up ? 'up' : 'down'}">${esc(s.chg)}</span></span>`).join('')}</div>
         <div class="hot-actions"><button type="button" class="hot-btn" data-analyze="${h.id}">${sparkle}<span>分析交易策略</span></button></div>
       </article>`).join('');
 
     let order = D.hotTrades.map(h => h.id);
+    // 建卡后：和卡片有关的热点排到最前，并标出关联
+    hotApi.prioritize = (scoreOf) => {
+      const base = D.hotTrades.map(h => h.id);
+      const sc = Object.fromEntries(base.map(id => [id, scoreOf(id)]));
+      order = [...base].sort((a, b) => (sc[b].score - sc[a].score) || (base.indexOf(a) - base.indexOf(b)));
+      base.forEach(id => {
+        const el = cardOf(id).querySelector('.hot-rel');
+        el.textContent = sc[id].label || '';
+        el.classList.toggle('show', !!sc[id].label);
+      });
+      layout();
+    };
     const cardOf = (id) => stack.querySelector(`[data-id="${id}"]`);
     const layout = () => order.forEach((id, i) => { cardOf(id).dataset.pos = Math.min(i, 3); });
 
@@ -411,5 +424,5 @@ window.BobbyUI = (() => {
     document.querySelectorAll('.drawer-item').forEach(x => x.classList.toggle('is-current', x.dataset.hist === id));
   }
 
-  return { $, esc, svg, toast, renderQuick, renderHot, renderBrief, drawBrief, renderPro, renderOnboarding, renderDrawer, addHistory, markCurrent, resetSearch };
+  return { $, esc, svg, toast, renderQuick, renderHot, hot: hotApi, renderBrief, drawBrief, renderPro, renderOnboarding, renderDrawer, addHistory, markCurrent, resetSearch };
 })();
