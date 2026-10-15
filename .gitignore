@@ -6,3 +6,10 @@ node_modules/
 # 谢峰的 App 录屏/截图，可能含账户信息，不进仓库
 素材/
 .playwright-mcp/
+
+# 内部过程文件，只留本地
+CLAUDE.md
+开发日志.md
+原型规划.md
+交付/录屏脚本.md
+output/
