@@ -41,6 +41,7 @@ window.BobbyProfile = (() => {
 
   // 头像：代码首字母 + 品类色（不用真实公司标志）
   const abbr = { CASH: '$', AMZN: 'AZ', GOOGL: 'GO' };
+  const SECTOR = { NVDA: 'AI 芯片', AMD: 'AI 芯片', TSLA: '电动车', TQQQ: '纳指杠杆', QQQ: '宽基指数', SPY: '宽基指数', AAPL: '科技巨头', MSFT: '科技巨头', GOOGL: '科技巨头', AMZN: '科技巨头', META: '科技巨头', PLTR: '软件', DDOG: '软件', SPCX: '航天', KO: '消费', JPM: '金融' };
   const avatar = (t, cls = '') => `<span class="pf-av ${cls}" style="--c:${U[t].color}">${abbr[t] || t.slice(0, 2)}</span>`;
 
   // 比例取整并保证合计 100（最大余数法）
@@ -89,7 +90,7 @@ window.BobbyProfile = (() => {
       { k: '风险偏好', v: ['', '保守', '稳健', '均衡', '进取', '激进'][risk], n: risk },
       { k: '集中度', v: conc[1], n: conc[0] },
       { k: '持有周期', v: hz[1], n: hz[0] },
-      { k: '杠杆', v: a.lev ? `${a.lev}% 仓位` : '不用', n: a.lev ? Math.min(5, 2 + Math.ceil(a.lev / 10)) : 0 },
+      { k: '杠杆', v: a.lev ? `${a.lev}%` : '不用', n: a.lev ? Math.min(5, 2 + Math.ceil(a.lev / 10)) : 0 },
     ];
   }
 
@@ -386,7 +387,7 @@ window.BobbyProfile = (() => {
     question(el, i) {
       const q = K.questions[i];
       el.innerHTML = `
-        <div class="pf-q-count">${i + 1} / ${K.questions.length}</div>
+        ${ctx.single ? '' : `<div class="pf-q-count">${i + 1} / ${K.questions.length}</div>`}
         <h1 class="pf-h2">${esc(q.title)}</h1>
         <p class="pf-sub">${esc(q.sub)}</p>
         <div class="pf-q-options">${q.options.map(([id, t, s]) => `
@@ -400,6 +401,7 @@ window.BobbyProfile = (() => {
         el.querySelectorAll('[data-opt]').forEach(x => x.classList.toggle('sel', x === o));
         state.prefs[q.id] = o.dataset.opt;
         setTimeout(() => {
+          if (ctx.single) { closeFlow(true); changed(); toast('已更新偏好'); return; }
           if (i + 1 < K.questions.length) go('question', i + 1);
           else { if (!state.holdings.length) state.source = 'pick'; build(); go('reveal'); }
         }, 260);
@@ -522,14 +524,21 @@ window.BobbyProfile = (() => {
     const watchBody = `<div class="pf-watch${editing.watch ? ' is-editing' : ''}">${watch.map(t => `
         <span class="pf-chip">${avatar(t)}${t}<button type="button" data-del-watch="${t}" aria-label="取消关注 ${t}">${ic('close')}</button></span>`).join('')}
         <button type="button" class="pf-chip pf-chip-add" data-page="add">${ic('plus')}添加</button></div>`;
-    const prefs = ['exp', 'dip', 'horizon'].map(prefText).filter(Boolean);
+    const dirs = [...new Set([...stocksOf().map(x => x.t), ...state.watch].map(t => SECTOR[t]).filter(Boolean))].slice(0, 3);
+    const prefRows = [
+      ['投资经验', prefText('exp'), null],
+      ['跌 20% 时', prefText('dip') && K.questions[0].options.find(o => o[0] === state.prefs.dip)[1], 0],
+      ['资金期限', prefText('horizon') && K.questions[1].options.find(o => o[0] === state.prefs.horizon)[1], 1],
+      ['常看的方向', dirs.join('、'), null],
+    ];
     const log = state.log;
     const editBtn = (k, on) => `<button type="button" data-page="edit-${k}">${on ? '完成' : '编辑'}</button>`;
     pageBody.innerHTML = `
       <div class="pf-page-card">${cardHTML()}</div>
       ${section('持仓', h.length ? `<div class="pf-sec-acts"><button type="button" data-page="import">更新截图</button>${editBtn('hold', editing.hold)}</div>` : '', holdBody)}
       ${section('关注', watch.length ? `<div class="pf-sec-acts">${editBtn('watch', editing.watch)}</div>` : '', watchBody)}
-      ${prefs.length ? section('偏好', '', `<div class="pf-prefs">${prefs.map(p => `<span>${esc(p)}</span>`).join('')}</div>`) : ''}
+      ${section('投资偏好', '', `<div class="pf-pref-list">${prefRows.map(([k, v, q]) => `
+          <div class="pf-pref-row"><span>${k}</span>${v ? `<b>${esc(v)}</b>` : q != null ? `<button type="button" data-pref-q="${q}">去回答${ic('chev')}</button>` : '<em>未填写</em>'}</div>`).join('')}</div>`)}
       ${log.length ? section('最近记下的', '', `<ul class="pf-log">${log.map(l => `
           <li class="${l.undone || l.removed ? 'is-undone' : ''}">
             <span class="pf-log-dot"></span>
@@ -576,6 +585,8 @@ window.BobbyProfile = (() => {
     }
     const u = e.target.closest('[data-undo]');
     if (u) { undo(u.dataset.undo); return; }
+    const pq = e.target.closest('[data-pref-q]');
+    if (pq) { openFlow('question', +pq.dataset.prefQ, { single: true }); return; }
     const b = e.target.closest('[data-page]');
     if (!b) return;
     const act = b.dataset.page;

@@ -359,6 +359,7 @@
 .pf-share.open .pf-share-scrim { background: rgba(15, 16, 22, .38); }
 .pf-share-panel {
   position: absolute; left: 0; right: 0; bottom: 0;
+  max-height: calc(100% - var(--top) - 8px); overflow-y: auto; scrollbar-width: none;
   padding: 16px 20px calc(28px + var(--safe-bottom));
   border-radius: 30px 30px 0 0; background: #f6f6f8;
   box-shadow: 0 -20px 50px rgba(0, 0, 0, .14);
@@ -369,12 +370,12 @@
 .pf-share-head b { font-size: 17px; font-weight: 750; }
 .pf-share-x { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(12, 14, 18, .07); }
 .pf-share-x svg { width: 12px; height: 12px; fill: none; stroke: rgba(12, 14, 18, .6); stroke-width: 2.6; stroke-linecap: round; }
-.pf-share-card { margin: 12px auto 0; width: 78%; }
+.pf-share-card { margin: 12px auto 0; width: 86%; }
 .pf-share-card .pfc-in { padding: 16px 16px 14px; }
 .pf-share-card .pfc-name { margin-top: 18px; }
 .pf-share-card .pfc-title { font-size: 31px; }
 .pf-share-card .pfc-blind p { font-size: 12.5px; }
-.pf-share-card .pfc-desc { display: none; }
+.pf-share-card .pfc-desc { margin-top: 8px; font-size: 12.5px; }
 .pf-share-card .pfc-dims { margin-top: 12px; gap: 6px; }
 .pf-share-card .pfc-dim { padding: 7px 9px; }
 .pf-share-card .pfc-dim b { font-size: 13px; }
@@ -460,6 +461,15 @@
 .is-editing .pf-chip button { width: 20px; margin-left: 0; opacity: 1; }
 .pf-chip-add { padding: 0 14px 0 10px; gap: 4px; color: var(--pf-purple); background: rgba(255, 255, 255, .5); border: 1px dashed rgba(111, 85, 216, .4); box-shadow: none; }
 .pf-chip-add svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.pf-pref-list { padding: 2px 16px; border-radius: 22px; background: #fff; box-shadow: 0 10px 28px rgba(30, 36, 60, .05); }
+.pf-pref-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 50px; font-size: 14.5px; }
+.pf-pref-row + .pf-pref-row { border-top: 1px solid rgba(12, 14, 18, .06); }
+.pf-pref-row > span { color: rgba(17, 20, 24, .5); }
+.pf-pref-row b { font-weight: 700; color: var(--pf-ink); text-align: right; }
+.pf-pref-row em { font-style: normal; color: rgba(17, 20, 24, .32); }
+.pf-pref-row button { position: relative; display: inline-flex; align-items: center; gap: 2px; padding: 6px 0; font-size: 14px; font-weight: 650; color: var(--pf-purple); }
+.pf-pref-row button::after { content: ""; position: absolute; left: -8px; right: -8px; top: 50%; height: 44px; transform: translateY(-50%); }
+.pf-pref-row button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .pf-prefs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .pf-prefs span { padding: 8px 13px; border-radius: 999px; background: #fff; border: 1px solid rgba(111, 85, 216, .16); font-size: 14px; font-weight: 650; color: var(--pf-purple-ink); }
 .pf-log { list-style: none; padding: 4px 14px; border-radius: 22px; background: #fff; box-shadow: 0 10px 28px rgba(30, 36, 60, .05); }
