@@ -342,8 +342,7 @@ window.BobbyProfile = (() => {
         if (state.built) state.updated = new Date();
         state.holdings = normalize(draft);
         state.source = 'import';
-        build();
-        go('reveal');
+        toQuestions();
       });
       draw();
     },
@@ -379,7 +378,8 @@ window.BobbyProfile = (() => {
           changed(); closeFlow(true); toast(`已加入关注：${[...sel].join('、')}`); return;
         }
         state.watch = [...sel];
-        go('question', 0);
+        if (!state.holdings.length) state.source = 'pick';
+        toQuestions();
       });
       sync();
     },
@@ -402,8 +402,7 @@ window.BobbyProfile = (() => {
         state.prefs[q.id] = o.dataset.opt;
         setTimeout(() => {
           if (ctx.single) { closeFlow(true); changed(); toast('已更新偏好'); return; }
-          if (i + 1 < K.questions.length) go('question', i + 1);
-          else { if (!state.holdings.length) state.source = 'pick'; build(); go('reveal'); }
+          toQuestions(i + 1);
         }, 260);
       });
     },
@@ -427,6 +426,14 @@ window.BobbyProfile = (() => {
       });
     },
   };
+
+  // 持仓（截图 / 点选 / 对话）之后都接行为题；已经答过的跳过，全部答完再揭晓
+  function toQuestions(from = 0) {
+    const q = K.questions.findIndex((x, i) => i >= from && !state.prefs[x.id]);
+    if (q >= 0) { go('question', q); return; }
+    build();
+    go('reveal');
+  }
 
   function build() {
     state.built = true;
@@ -1189,8 +1196,7 @@ window.BobbyProfile = (() => {
         renderExtras(pendingBox);
         ctx = {}; stack = [];
         flow.classList.add('open');
-        build();
-        go('reveal');
+        toQuestions();
         return;
       }
       openFlow('start', null, {});
