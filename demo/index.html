@@ -26,23 +26,20 @@
   <aside class="stage-intro" aria-label="作品说明">
     <img class="stage-logo" src="assets/img/logo.png" alt="Bobby">
     <h1 class="stage-title">我的投资卡片</h1>
-    <p class="stage-lede">不开户，Bobby 也认识你。</p>
-    <p class="stage-desc">为 Bobby 设计的新功能原型：截一张任意券商的持仓图，或者挑几只关注的股票，Bobby 把它们沉淀成一张看得见、可编辑的投资卡片。之后的回答、追问和每日简报都围绕它。</p>
+    <p class="stage-lede">不用开户，Bobby 的每个回答都和你有关。</p>
     <ol class="stage-flow">
-      <li><b>建卡</b><span>截图识别或点选，只记代码和比例</span></li>
-      <li><b>记下</b><span>对话里提到的新股票自动记下，可撤销</span></li>
-      <li><b>用上</b><span>按持仓追问；第二天简报只讲你的股票</span></li>
+      <li><b>建卡</b><span>截图或点选</span></li>
+      <li><b>记下</b><span>对话里自动记</span></li>
+      <li><b>用上</b><span>追问与简报</span></li>
     </ol>
-    <p class="stage-goal">目标指标：未绑定账户用户的 7 日留存</p>
+    <p class="stage-goal">目标：未绑定账户用户的 7 日留存</p>
     <footer class="stage-credit">
       <span>非官方演示原型，数据均为虚构</span>
-      <span>谢峰 · RockFlow Vibe Coding 作业</span>
-      <span>主要用 Claude Code 完成 · 2026 年 10 月</span>
+      <span>谢峰 · RockFlow Vibe Coding 作业 · Claude Code</span>
     </footer>
   </aside>
   <aside class="stage-ctrl" aria-label="演示控制">
     <h2 class="stage-ctrl-title">演示控制</h2>
-    <p class="stage-ctrl-sub">录屏用，不属于产品界面</p>
     <div class="stage-day">
       <div class="stage-day-copy"><b id="stageDayLabel">第 1 天</b><span id="stageDayDate"></span></div>
       <button type="button" class="stage-day-btn" data-demo="day" id="stageDayBtn">跳到第二天</button>
@@ -51,16 +48,6 @@
       <button type="button" data-demo="onboarding">从引导开始</button>
       <button type="button" data-demo="card">直接看卡片</button>
       <button type="button" data-demo="reset">重置演示</button>
-    </div>
-    <div class="stage-route">
-      <h3>推荐路线</h3>
-      <ol>
-        <li>引导选「新手入门」，再选「截图导入持仓」</li>
-        <li>首页第一张热点（AMD，已按卡片排到最前）点「分析交易策略」</li>
-        <li>点「这对我的 NVDA 意味着什么？」</li>
-        <li>跳到第二天，看首页简报</li>
-        <li>侧栏或首页卡片条，进入卡片页</li>
-      </ol>
     </div>
   </aside>
   <div class="device" id="device">
@@ -102,9 +89,12 @@
               <header class="section-label">Hot Trades</header>
               <div class="hot-stack" id="hotStack"></div>
             </section>
+            <section class="pf-home">
+              <header class="section-label">我的投资卡片</header>
+              <div id="pfStrip"></div>
+            </section>
             <section class="brief-section">
               <header class="section-label">您的每日简报</header>
-              <div id="pfStrip"></div>
               <div id="briefMount"></div>
             </section>
             <section class="pro-section">

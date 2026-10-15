@@ -69,7 +69,28 @@ window.BobbyProfile = (() => {
     ['exp', 'dip', 'horizon'].forEach(k => { if (s.prefs[k]) tags.push(K.prefLabels[k][s.prefs[k]]); });
     const p = { ...K.personas[key] };
     if (key === 'scout' && K.scoutBlind[s.prefs.dip]) p.blind = K.scoutBlind[s.prefs.dip];
-    return { key, ...p, tags: tags.slice(0, 4), tech, lev, cash, stocks: h };
+    const a = { key, ...p, tags: tags.slice(0, 4), tech, lev, cash, stocks: h };
+    a.dims = dims(a, s);
+    return a;
+  }
+
+  // 四个维度：风险偏好、集中度、持有周期、杠杆；n 为 0–5 档，用圆点表示
+  function dims(a, s) {
+    const h = a.stocks;
+    const clamp = (v) => Math.max(1, Math.min(5, Math.round(v)));
+    const dip = s.prefs.dip;
+    const risk = h.length
+      ? clamp(1 + a.tech / 50 + (a.lev ? 1.2 : 0) - a.cash / 40 + ({ add: .5, cut: -.5 }[dip] || 0))
+      : clamp({ add: 3.5, hold: 2.6, cut: 1.5 }[dip] || 2.4);
+    const top = h.length ? Math.max(...h.map(x => x.w)) : 0;
+    const conc = !h.length ? [0, '只看不买'] : a.tech >= 70 || top >= 50 ? [5, '高度集中'] : top >= 30 ? [3, '适中'] : [2, '分散'];
+    const hz = s.prefs.horizon ? { short: [2, '几个月'], mid: [3, '一两年'], long: [5, '五年以上'] }[s.prefs.horizon] : a.lev ? [2, '偏短线'] : [4, '偏长线'];
+    return [
+      { k: '风险偏好', v: ['', '保守', '稳健', '均衡', '进取', '激进'][risk], n: risk },
+      { k: '集中度', v: conc[1], n: conc[0] },
+      { k: '持有周期', v: hz[1], n: hz[0] },
+      { k: '杠杆', v: a.lev ? `${a.lev}% 仓位` : '不用', n: a.lev ? Math.min(5, 2 + Math.ceil(a.lev / 10)) : 0 },
+    ];
   }
 
   /* ---------- 卡片组件 ---------- */
@@ -88,9 +109,11 @@ window.BobbyProfile = (() => {
         <div class="pfc-sheen"></div>
         <img class="pfc-mark" src="assets/img/logo.png" alt="">
         <div class="pfc-in">
-          <header class="pfc-head"><img src="assets/img/logo.png" alt=""><span>Bobby 投资卡片</span>${opts.flat ? '' : `<span class="pfc-src">${{ import: '截图导入', chat: '对话录入' }[state.source] || '点选关注'}</span>`}</header>
+          <header class="pfc-head"><img src="assets/img/logo.png" alt=""><span>Bobby 投资卡片</span></header>
           <div class="pfc-name"><h3 class="pfc-title">${title}</h3><div class="pfc-en">${esc(a.en)}</div></div>
-          <div class="pfc-tags">${a.tags.filter(t => !(opts.flat && t === prefText('exp'))).map(t => `<span>${esc(t)}</span>`).join('')}</div>
+          <p class="pfc-desc">${esc(a.desc)}</p>
+          <div class="pfc-dims">${a.dims.map(d => `
+            <div class="pfc-dim"><span class="pfc-dim-k">${d.k}</span><b>${esc(d.v)}</b><i class="pfc-dots">${[1, 2, 3, 4, 5].map(i => `<em class="${i <= d.n ? 'on' : ''}"></em>`).join('')}</i></div>`).join('')}</div>
           <div class="pfc-blind"><span class="pfc-blind-k">盲点</span><p>${esc(a.blind)}</p></div>
           <div class="pfc-mix">${mix}</div>
           <footer class="pfc-foot"><span>iFeng</span><span>${state.updated ? `更新于 ${mdLabel(state.updated)}` : `生成于 ${mdLabel(state.created || new Date())}`}</span></footer>
@@ -197,7 +220,7 @@ window.BobbyProfile = (() => {
         <div class="pf-hero">
           <div class="pf-hero-card" aria-hidden="true"><span></span><span></span><span></span></div>
           <h1 class="pf-h1">建一张你的投资卡片</h1>
-          <p class="pf-sub">不用开户。Bobby 会记住你持有和关注的股票，<br>之后的回答和简报都围绕它们。</p>
+          <p class="pf-sub">不用开户。Bobby 记住你的持仓和关注，之后的回答和简报都围绕它们。</p>
         </div>
         <div class="pf-choices">
           ${choice('import', 'image', '截图导入持仓', '任意券商的持仓页，金额可打码')}
@@ -388,7 +411,6 @@ window.BobbyProfile = (() => {
       el.innerHTML = `
         <p class="pf-reveal-k">你的投资卡片</p>
         <div class="pf-reveal-card">${cardHTML({ reveal: true })}</div>
-        <p class="pf-reveal-note">${hasHold() ? '称号描述持仓结构' : '称号来自关注和情景题'}，盲点是最该留意的一件事。</p>
         <div class="pf-actions">
           <button type="button" class="pf-btn-ghost" data-act="share">${ic('share')}分享卡片</button>
           <button type="button" class="pf-btn" data-act="go">开始使用</button>
@@ -477,7 +499,7 @@ window.BobbyProfile = (() => {
         <div class="pf-empty">
           <div class="pf-empty-card" aria-hidden="true"><img src="assets/img/logo.png" alt=""></div>
           <h2>还没有投资卡片</h2>
-          <p>截一张任意券商的持仓图，<br>或者挑几只关注的股票，30 秒就能建好。</p>
+          <p>截一张持仓图，或者挑几只关注的股票。</p>
           <div class="pf-choices">
             ${choice('import', 'image', '截图导入持仓', '金额可以打码，截图不保存')}
             ${choice('pick', 'star', '挑几只关注', '还没买，或者不想截图')}
@@ -485,7 +507,6 @@ window.BobbyProfile = (() => {
         </div>`;
       return;
     }
-    const a = analyze();
     const h = state.holdings;
     const holdBody = h.length
       ? `<div class="pf-hold${editing.hold ? ' is-editing' : ''}">${h.map(x => `
@@ -496,32 +517,35 @@ window.BobbyProfile = (() => {
             <span class="pf-hold-w">${x.w}%</span>
             <button type="button" class="pf-mini-del" data-del-hold="${x.t}" aria-label="删除 ${nameOf(x.t)}">${ic('minus')}</button>
           </div>`).join('')}</div>`
-      : `<button type="button" class="pf-inline-cta" data-page="import">${ic('image')}<span><b>还没有持仓</b>截图导入后，Bobby 能看清你的仓位结构</span>${ic('chev')}</button>`;
+      : `<button type="button" class="pf-inline-cta" data-page="import">${ic('image')}<b>截图导入持仓</b>${ic('chev')}</button>`;
     const watch = state.watch;
     const watchBody = `<div class="pf-watch${editing.watch ? ' is-editing' : ''}">${watch.map(t => `
         <span class="pf-chip">${avatar(t)}${t}<button type="button" data-del-watch="${t}" aria-label="取消关注 ${t}">${ic('close')}</button></span>`).join('')}
         <button type="button" class="pf-chip pf-chip-add" data-page="add">${ic('plus')}添加</button></div>`;
-    const prefs = Object.entries(state.prefs).map(([k, v]) => K.prefLabels[k][v]);
+    const prefs = ['exp', 'dip', 'horizon'].map(prefText).filter(Boolean);
     const log = state.log;
+    const editBtn = (k, on) => `<button type="button" data-page="edit-${k}">${on ? '完成' : '编辑'}</button>`;
     pageBody.innerHTML = `
       <div class="pf-page-card">${cardHTML()}</div>
-      ${section(`持仓${h.length ? `<em>${stocksOf().length} 只股票${a.cash ? ' + 现金' : ''}</em>` : ''}`,
-        h.length ? `<div class="pf-sec-acts"><button type="button" data-page="import">更新截图</button><button type="button" data-page="edit-hold">${editing.hold ? '完成' : '编辑'}</button></div>` : '', holdBody)}
-      ${section(`关注<em>${watch.length} 只</em>`, watch.length ? `<div class="pf-sec-acts"><button type="button" data-page="edit-watch">${editing.watch ? '完成' : '编辑'}</button></div>` : '', watchBody)}
-      ${prefs.length ? section('偏好', '', `<div class="pf-prefs">${prefs.map(p => `<span>${esc(p)}</span>`).join('')}</div><p class="pf-sec-note">来自引导和建卡时的情景题。比如选了「新手」：热点回答不展示短线交易策略，回答末尾附名词小抄。</p>`) : ''}
-      ${section('最近记下的', '', log.length ? `<ul class="pf-log">${log.map(l => `
+      ${section('持仓', h.length ? `<div class="pf-sec-acts"><button type="button" data-page="import">更新截图</button>${editBtn('hold', editing.hold)}</div>` : '', holdBody)}
+      ${section('关注', watch.length ? `<div class="pf-sec-acts">${editBtn('watch', editing.watch)}</div>` : '', watchBody)}
+      ${prefs.length ? section('偏好', '', `<div class="pf-prefs">${prefs.map(p => `<span>${esc(p)}</span>`).join('')}</div>`) : ''}
+      ${log.length ? section('最近记下的', '', `<ul class="pf-log">${log.map(l => `
           <li class="${l.undone || l.removed ? 'is-undone' : ''}">
             <span class="pf-log-dot"></span>
-            <div><b>${l.undone ? '已撤销' : l.removed ? '已移除' : '加入关注'} ${l.tickers.join('、')}</b><span>${esc(l.from)} · ${l.day === state.day ? '今天' : '昨天'} ${esc(l.hm)}</span></div>
+            <div><b>${l.undone ? '已撤销' : l.removed ? '已移除' : '关注'} ${l.tickers.join('、')}</b><span>${esc(l.from)} · ${l.day === state.day ? '今天' : '昨天'} ${esc(l.hm)}</span></div>
             ${l.undone || l.removed ? '' : `<button type="button" data-undo="${l.id}">撤销</button>`}
-          </li>`).join('')}</ul>` : `<p class="pf-sec-note">你在对话里问到卡片之外的股票时，Bobby 会把它记到这里，每一条都可以撤销。</p>`)}
-      <div class="pf-link">
-        <span class="pf-link-ico">${ic('link')}</span>
-        <div><b>绑定 RockFlow 账户</b><span>持仓每天自动同步，不用再截图</span></div>
-        <button type="button" data-page="bind">绑定</button>
+          </li>`).join('')}</ul>`) : ''}
+      <div class="pf-bind">
+        <div class="pf-bind-head">
+          <span class="pf-bind-logo"><img src="assets/img/logo.png" alt=""></span>
+          <div><b>绑定 RockFlow 账户</b><span>持仓每天自动同步，不用再截图</span></div>
+        </div>
+        <button type="button" class="pf-bind-btn" data-page="bind">绑定${ic('arrow')}</button>
+        <p class="pf-bind-foot">交易服务由 RockFlow 提供</p>
       </div>
-      <p class="pf-disclaimer">卡片内容来自你提供的信息，只用于让 Bobby 的回答更贴近你，仅供参考，不构成投资建议。</p>
-      <button type="button" class="pf-clear${clearArmed ? ' armed' : ''}" data-page="clear">${clearArmed ? '再点一次，确认清空卡片' : '清空卡片'}</button>`;
+      <p class="pf-disclaimer">仅供参考，不构成投资建议</p>
+      <button type="button" class="pf-clear${clearArmed ? ' armed' : ''}" data-page="clear">${clearArmed ? '再点一次，确认清空' : '清空卡片'}</button>`;
     bindTilt(pageBody);
   }
 
@@ -578,15 +602,15 @@ window.BobbyProfile = (() => {
   }
   function closePage() { page.classList.remove('open'); }
 
-  /* ---------- 首页卡片条 ---------- */
+  /* ---------- 首页「我的投资卡片」区 ---------- */
   function renderStrip() {
     const el = $('#pfStrip');
     if (!el) return;
     if (!state.built) {
       el.innerHTML = `
-        <button type="button" class="pf-strip is-empty" data-strip="build">
-          <span class="pf-strip-ico">${ic('card')}</span>
-          <span class="pf-strip-copy"><b>建一张投资卡片</b><span>简报就只讲和你有关的股票</span></span>
+        <button type="button" class="pf-home-card is-empty" data-strip="build">
+          <span class="pf-home-thumb">${ic('plus')}</span>
+          <span class="pf-home-copy"><b>建一张投资卡片</b><span>截图或点选，30 秒。之后的回答和简报都围绕你。</span></span>
           <span class="pf-strip-btn">去建卡</span>
         </button>`;
       return;
@@ -594,10 +618,13 @@ window.BobbyProfile = (() => {
     const a = analyze();
     const ts = (state.holdings.length ? stocksOf().map(x => x.t) : state.watch).slice(0, 3);
     el.innerHTML = `
-      <button type="button" class="pf-strip" data-strip="open">
-        <span class="pf-strip-foil"></span>
-        <span class="pf-strip-copy"><b>${esc(a.title)}</b><span>${state.day === 1 ? '明早起，简报会围绕这张卡片' : '今天的简报已按你的卡片生成'}</span></span>
-        <span class="pf-strip-avs">${ts.map(t => avatar(t)).join('')}</span>
+      <button type="button" class="pf-home-card" data-strip="open">
+        <span class="pf-home-thumb"><img src="assets/img/logo.png" alt=""></span>
+        <span class="pf-home-copy">
+          <b class="pf-home-title">${esc(a.title)}</b>
+          <span class="pf-home-dims">${a.dims.slice(0, 2).map(d => `${d.k} <em>${esc(d.v)}</em>`).join('<i></i>')}</span>
+          <span class="pf-home-meta"><span class="pf-strip-avs">${ts.map(t => avatar(t)).join('')}</span>${state.day === 1 ? '明早起，简报按它生成' : '今天的简报已按它生成'}</span>
+        </span>
         ${ic('chev', 'pf-strip-chev')}
       </button>`;
   }
@@ -982,20 +1009,20 @@ window.BobbyProfile = (() => {
     return { score: best.r, label: `和你的 ${best.t} ${best.r >= 3 ? '直接相关' : '相关'}` };
   }
 
-  // 按卡片和经验改写原有回答：热点回答顶部加「和你的卡片有关」；新手把交易策略换成对卡片的影响，并附名词小抄
+  // 按卡片和经验改写原有回答：热点回答顶部加「和你有关」；新手把交易策略换成对卡片的影响，并附名词小抄
   function adapt(answer) {
     const tp = answer.topic || '';
     let blocks = answer.blocks;
     if (tp.startsWith('hot-') && state.built) {
       const rel = stocksOf().map(x => ({ x, r: relOf(tp, x.t) })).filter(o => o.r[0] >= 2).sort((a, b) => b.r[0] - a.r[0]);
-      if (rel.length) blocks = [{ t: 'callout', c: [S('和你的卡片有关：', { b: true }), S(rel.map(o => `${o.x.t} 占 ${o.x.w}%，${o.r[1]}`).join('；') + '。')] }, ...blocks];
+      if (rel.length) blocks = [{ t: 'callout', c: [S('和你有关：', { b: true }), S(rel.map(o => `${o.x.t} 占 ${o.x.w}%，${o.r[1]}`).join('；') + '。')] }, ...blocks];
     }
     if (tp.startsWith('hot-') && state.prefs.exp === 'new') {
       const h = blocks.findIndex(b => b.t === 'h2' && /交易策略/.test(b.c[0].text));
       if (h >= 0) {
         const own = stocksOf();
         const repl = own.length
-          ? [{ t: 'h2', c: [S('三、对你的卡片意味着什么')] }, { t: 'ul', items: own.map(x => [S(`${x.t}（${x.w}%）：`, { b: true }), S(relOf(tp, x.t)[1] + '。')]) }]
+          ? [{ t: 'h2', c: [S('三、对你意味着什么')] }, { t: 'ul', items: own.map(x => [S(`${x.t}（${x.w}%）：`, { b: true }), S(relOf(tp, x.t)[1] + '。')]) }]
           : [{ t: 'h2', c: [S('三、新手先看什么')] }, { t: 'p', c: [S('先别急着交易。看清这条消息影响的是哪几家公司、市场之前有没有预期，比判断明天涨跌更重要。')] }];
         blocks = [...blocks.slice(0, h), ...repl, { t: 'callout', c: [S('你选了「新手入门」，', { b: true }), S('这里不展示短线交易策略。')] }, ...blocks.slice(h + 2).filter(b => b.t !== 'callout')];
       }
@@ -1003,7 +1030,7 @@ window.BobbyProfile = (() => {
     if (state.prefs.exp === 'new' && /^(hot-|pf|checkup)/.test(tp)) {
       const text = JSON.stringify(blocks);
       const terms = Object.entries(GLOSSARY).filter(([k]) => text.includes(k)).slice(0, 3);
-      if (terms.length) blocks = [...blocks, { t: 'callout', c: [S('名词小抄　', { b: true }), S(terms.map(([k, v]) => `${k}：${v}`).join('；') + '。')] }];
+      if (terms.length) blocks = [...blocks, { t: 'glossary', title: '名词小抄', items: terms }];
     }
     return blocks === answer.blocks ? answer : { ...answer, blocks };
   }

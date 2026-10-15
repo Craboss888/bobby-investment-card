@@ -29,6 +29,7 @@ window.BobbyChat = (() => {
     blocks.forEach(b => {
       if (b.t === 'table') { units.push({ kind: 'table', b }); return; }
       if (b.t === 'hr') { units.push({ kind: 'hr', b }); return; }
+      if (b.t === 'glossary') { units.push({ kind: 'glossary', b }); return; }
       if (b.t === 'ol' || b.t === 'ul') { units.push({ kind: 'list', b }); return; }
       units.push({ kind: 'text', b, len: segLen(b.c) });
     });
@@ -51,8 +52,17 @@ window.BobbyChat = (() => {
     return wrap;
   }
 
+  // 名词小抄：标题 + 分条
+  function glossaryEl(b) {
+    const d = document.createElement('div');
+    d.className = 'callout glossary';
+    d.innerHTML = `<b>${esc(b.title)}</b><ul>${b.items.map(([k, v]) => `<li><strong>${esc(k)}</strong>：${esc(v)}</li>`).join('')}</ul>`;
+    return d;
+  }
+
   function renderStatic(md, blocks) {
     blocks.forEach(b => {
+      if (b.t === 'glossary') { md.appendChild(glossaryEl(b)); return; }
       if (b.t === 'table') { md.appendChild(tableEl(b)); return; }
       if (b.t === 'hr') { md.appendChild(document.createElement('hr')); return; }
       if (b.t === 'ol' || b.t === 'ul') {
@@ -185,7 +195,9 @@ window.BobbyChat = (() => {
       const u = units[ui];
       if (!u) { done(r); return; }
 
-      if (u.kind === 'hr') {
+      if (u.kind === 'glossary') {
+        const g = glossaryEl(u.b); g.classList.add('fade-in'); md.appendChild(g); ui++; pauseUntil = now + 120;
+      } else if (u.kind === 'hr') {
         const hr = document.createElement('hr'); hr.className = 'fade-in'; md.appendChild(hr); ui++; pauseUntil = now + 80;
       } else if (u.kind === 'table') {
         // 先按完整内容排好列宽（行先隐藏），再逐行显示，避免边出边跳

@@ -252,13 +252,14 @@ window.BOBBY_DATA = (() => {
   };
 
   // 称号：按顺序匹配第一条；只描述持仓结构，每个都配一条盲点，不夸奖高风险
+  // 称号：desc 写「这类投资者是什么样」，blind 写盲点；只描述持仓结构，不夸奖高风险
   const personas = {
-    single: { title: '单核信仰者', en: 'The Single-Core Believer', blind: '几只股票看着分散，押的其实是同一个赌注：科技股一起跌时，没有东西能接住你。' },
-    lever: { title: '三倍速玩家', en: 'The 3x Rider', blind: '杠杆每天重置，震荡市里不涨不跌，也会慢慢磨掉本金。' },
-    index: { title: '躺平指数派', en: 'The Index Napper', blind: '稳是稳，但容易错过自己真正看好的机会。' },
-    div: { title: '收息包租公', en: 'The Dividend Landlord', blind: '利率一变，股息股也会跟着晃。' },
-    multi: { title: '多线并行者', en: 'The Multi-Threader', blind: '分散了不少，但要留意哪几只其实在同涨同跌。' },
-    scout: { title: '场边观察员', en: 'The Sideline Scout', blind: '看了很久，还没想清楚自己能承受多大的跌幅。' },
+    single: { title: '单核信仰者', en: 'The Single-Core Believer', desc: '认准一条主线，把大部分仓位押在同一个方向上，相信自己看准的赛道会一直赢。', blind: '几只股票看着分散，押的其实是同一个赌注：科技股一起跌时，没有东西能接住你。' },
+    lever: { title: '三倍速玩家', en: 'The 3x Rider', desc: '习惯用工具放大判断，追求速度和弹性，对短期涨跌的容忍度高。', blind: '杠杆每天重置，震荡市里不涨不跌，也会慢慢磨掉本金。' },
+    index: { title: '躺平指数派', en: 'The Index Napper', desc: '不想天天盯盘，相信长期跟着市场整体走就够了。', blind: '稳是稳，但容易错过自己真正看好的机会。' },
+    div: { title: '收息包租公', en: 'The Dividend Landlord', desc: '看重稳定的现金流，宁可涨得慢，也要拿得住、睡得着。', blind: '利率一变，股息股也会跟着晃。' },
+    multi: { title: '多线并行者', en: 'The Multi-Threader', desc: '同时押几条不同的线，不把鸡蛋放在一个篮子里。', blind: '分散了不少，但要留意哪几只其实在同涨同跌。' },
+    scout: { title: '场边观察员', en: 'The Sideline Scout', desc: '还在场边看，先把公司和节奏看明白，再决定什么时候下场。', blind: '看了很久，还没想清楚自己能承受多大的跌幅。' },
   };
   const scoutBlind = {
     add: '想着跌了就加仓，但还没算过最多能加到多少。',

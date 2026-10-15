@@ -225,7 +225,7 @@
       Profile.setDay(next);
       closeDrawer(); Profile.closePage(); Profile.closeFlow(true);
       goHome();
-      $('#homeScroll').scrollTo({ top: $('.brief-section').offsetTop - 96, behavior: 'smooth' });
+      $('#homeScroll').scrollTo({ top: $('.pf-home').offsetTop - 96, behavior: 'smooth' });
       UI.toast(next === 1 ? '回到第一天' : Profile.state.built ? '第二天早上：简报已按卡片更新' : '第二天早上：没有卡片，简报还是通用版');
     } else if (act === 'reset') { resetDemo(); UI.toast('演示已重置'); }
     else if (act === 'onboarding') { resetDemo(); UI.renderOnboarding(startCard); $('#onboarding').classList.remove('hide'); }
